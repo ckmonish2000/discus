@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "media-processor",
   "module": "index.ts",
   "type": "module",
   "private": true,

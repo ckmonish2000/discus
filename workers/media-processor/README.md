@@ -1,4 +1,4 @@
-# api
+# media-processor
 
 To install dependencies:
 
