@@ -86,11 +86,14 @@ export default class MinioService {
 
 
     async listObjects(bucketName: string) {
-        try {
-            return await this.minioClient.listObjects(bucketName)
-        } catch (error) {
-            console.log(error)
-        }
+        return new Promise((resolve, reject) => {
+            const files: any[] = [];
+            const stream = this.minioClient.listObjectsV2(bucketName, undefined, true);
+
+            stream.on("data", (obj) => files.push(obj));
+            stream.on("end", () => resolve(files));
+            stream.on("error", reject);
+        });
     }
 
 }
