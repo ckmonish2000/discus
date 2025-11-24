@@ -3,14 +3,20 @@ import * as Minio from 'minio'
 export default class MinioService {
     private minioClient: Minio.Client;
 
-    constructor() {
-        const url = new URL(process.env.MINIO_BASE_URL!);
+    constructor(payload: {
+        endpoint: string,
+        accessKey: string,
+        secretKey: string,
+        useSSL: boolean,
+        port?: number
+    }) {
+        const url = new URL(payload.endpoint);
         this.minioClient = new Minio.Client({
             endPoint: url.hostname,
-            port: parseInt(url.port),
-            useSSL: url.protocol === 'https:',
-            accessKey: process.env.MINIO_ACCESS_KEY!,
-            secretKey: process.env.MINIO_SECRET_KEY!
+            useSSL: payload.useSSL,
+            accessKey: payload.accessKey,
+            secretKey: payload.secretKey,
+            port: payload.port || parseInt(url.port),
         });
     }
 
@@ -22,11 +28,28 @@ export default class MinioService {
         }
     }
 
-    async createBucket(bucketName: string) {
+    async bucketExists(bucketName: string) {
         try {
-            return await this.minioClient.makeBucket(bucketName)
+            return await this.minioClient.bucketExists(bucketName)
         } catch (error) {
-            console.log(error);
+            console.log(error)
+        }
+    }
+
+    async createBucket(bucketName: string): Promise<{ message: string }> {
+        try {
+            const bucketExists = await this.bucketExists(bucketName)
+
+            if (bucketExists) {
+                return { message: `bucket ${bucketName} already exists` }
+            }
+
+            await this.minioClient.makeBucket(bucketName)
+
+            return { message: `bucket ${bucketName} created successfully` }
+        } catch (error) {
+            console.log(error)
+            return { message: `Failed to create bucket ${bucketName}: ${error}` };
         }
     }
 
@@ -38,11 +61,11 @@ export default class MinioService {
         }
     }
 
-    async getPresignedUrl(payload: { bucketName: string, objectName: string, isFetch?:boolean,expires?: number }) {
+    async getPresignedUrl(payload: { bucketName: string, objectName: string, isFetch?: boolean, expires?: number }) {
         try {
-            const { bucketName, objectName, expires,isFetch } = payload
+            const { bucketName, objectName, expires, isFetch } = payload
 
-            if(isFetch){
+            if (isFetch) {
                 return this.minioClient.presignedGetObject(
                     bucketName,
                     objectName,
@@ -57,8 +80,17 @@ export default class MinioService {
             )
         } catch (err) {
             console.log(err)
+            throw err
         }
     }
 
+
+    async listObjects(bucketName: string) {
+        try {
+            return await this.minioClient.listObjects(bucketName)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
 }

@@ -3,10 +3,20 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run --hot --env-file=../../.env.local src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.5",
+    "hono": "^4.10.6",
+    "minio": "workspaces/*",
+    "mistral": "workspaces/*",
+    "zod": "^4.1.12"
   }
 }

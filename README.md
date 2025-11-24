@@ -1,63 +1,7 @@
 # discus
 
-A Bun workspace project with server, frontend, and AI utilities (Mistral & Ollama).
+<img src="https://github.com/ckmonish2000/discus/blob/main/assets/discus.png" width="250">
 
-## Project Structure
-
-```
-discus/
-├── package.json                 # Root workspace config
-├── bun.lockb
-├── .env.example
-├── docker-compose.yml           # Main compose file (root level)
-├── docker-compose.dev.yml       # Development overrides
-│
-├── apps/
-│   ├── server/
-│   │   ├── package.json
-│   │   ├── index.ts            # Bun.serve() entry point
-│   │   ├── src/
-│   │   │   ├── routes/
-│   │   │   ├── middleware/
-│   │   │   └── websocket/
-│   │   └── Dockerfile
-│   │
-│   └── frontend/
-│       ├── package.json
-│       ├── index.html          # Entry point
-│       ├── frontend.tsx        # React root
-│       ├── src/
-│       │   ├── components/
-│       │   ├── hooks/
-│       │   └── styles/
-│       └── Dockerfile
-│
-├── packages/
-│   ├── mistral/
-│   │   ├── package.json
-│   │   ├── index.ts           # Mistral client/utils
-│   │   └── src/
-│   │
-│   ├── ollama/
-│   │   ├── package.json
-│   │   ├── index.ts           # Ollama client/utils
-│   │   └── src/
-│   │
-│   └── shared/
-│       ├── package.json
-│       ├── index.ts           # Common types, utils
-│       └── src/
-│
-└── infra/
-    ├── docker/
-    │   ├── server.Dockerfile
-    │   ├── frontend.Dockerfile
-    │   └── mistral.Dockerfile
-    │
-    └── scripts/
-        ├── dev.sh
-        └── deploy.sh
-```
 
 ## Quick Start
 

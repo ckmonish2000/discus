@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "api":"bun --env-file=../../.env.local --filter=api run start:dev"
+    "api": "bun --env-file=../../.env.local --filter=api run start:dev"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -16,5 +16,8 @@
     "packages/*",
     "apps/*",
     "workers/*"
-  ]
+  ],
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
 }
