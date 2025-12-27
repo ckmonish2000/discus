@@ -30,10 +30,31 @@ services:
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
-      - MINIO_DEFAULT_BUCKETS=my-default-bucket
+      - MINIO_NOTIFY_WEBHOOK_ENABLE_primary=on
+      - MINIO_NOTIFY_WEBHOOK_ENDPOINT_primary=http://host.docker.internal:8000/storage/webhook
     command: server /data --console-address ":9001"
     volumes:
       - storage_data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ./scripts/init-minio.sh:/init-minio.sh
+    entrypoint: /bin/sh
+    command: -c "/init-minio.sh"
 
 
 volumes:
