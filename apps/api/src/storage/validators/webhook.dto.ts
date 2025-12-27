@@ -19,4 +19,3 @@ export const storageWebhookSchema = z.object({
 })
 
 export type StorageWebhookDto = z.infer<typeof storageWebhookSchema>
-export const storageWebhookValidator = zValidator('json', storageWebhookSchema)
