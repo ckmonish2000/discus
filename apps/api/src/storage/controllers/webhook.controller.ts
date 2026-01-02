@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { minioService } from '../services/minio.service';
 import { StorageWebhookDto } from '../validators/webhook.dto';
-import MistralService from 'mistral'
+import MistralService from 'agents'
 const router = new Hono();
+import { stream } from 'hono/streaming'
 
 /**
  * POST /webhook
@@ -19,7 +20,13 @@ router.post('/webhook', async (c) => {
         const mistralService = new MistralService()
         const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
         const ocrResponse = await mistralService.processImageUrl(url);
-        return c.json({ url,ocrResponse });
+        const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val,idx) =>({
+            analysis: await mistralService.analyzeText(val?.markdown),
+            context: val?.markdown,
+            page: val?.index
+        })) || []);
+
+        return c.json({ ocrResponse,textAnalysis })
     } catch (error) {
         console.log(error);
         throw error;

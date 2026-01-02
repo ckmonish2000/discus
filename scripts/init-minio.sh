@@ -30,6 +30,6 @@ mc event add myminio/${BUCKET_NAME} arn:minio:sqs::primary:webhook \
   --event put,delete,get
 
 echo "✅ Configured webhook notification for bucket '${BUCKET_NAME}'"
-echo "   Webhook endpoint: http://host.docker.internal:8000/storage/webhook"
+echo "   Webhook endpoint: http://api:8000/storage/webhook"
 
 echo "🎉 MinIO initialization completed successfully!"
