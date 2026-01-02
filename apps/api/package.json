@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --hot --env-file=../../.env.local src/index.ts"
+    "dev": "NODE_ENV=development bun run --hot --env-file=../../.env.local src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -13,10 +13,12 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@hono/swagger-ui": "^0.5.2",
+    "@hono/zod-openapi": "^1.1.6",
     "@hono/zod-validator": "^0.7.5",
     "hono": "^4.10.6",
     "minio": "workspaces/*",
-    "mistral": "workspaces/*",
+    "agents": "workspaces/*",
     "zod": "^4.1.12"
   }
 }

@@ -8,5 +8,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@mistralai/mistralai": "^1.10.0",
+    "ollama": "^0.6.3"
   }
 }

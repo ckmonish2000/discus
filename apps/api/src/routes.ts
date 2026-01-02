@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import storageRouter from "./storage/storage.routes";
+import storageRouter from "./storage/storage.controller";
 
 const router = new Hono()
 

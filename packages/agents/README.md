@@ -1,4 +1,4 @@
-# agents
+# mistral
 
 To install dependencies:
 
