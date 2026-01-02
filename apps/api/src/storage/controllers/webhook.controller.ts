@@ -20,13 +20,13 @@ router.post('/webhook', async (c) => {
         const mistralService = new MistralService()
         const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
         const ocrResponse = await mistralService.processImageUrl(url);
-        const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val,idx) =>({
+        const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val) => ({
             analysis: await mistralService.analyzeText(val?.markdown),
             context: val?.markdown,
             page: val?.index
         })) || []);
 
-        return c.json({ ocrResponse,textAnalysis })
+        return c.json({ url, textAnalysis })
     } catch (error) {
         console.log(error);
         throw error;

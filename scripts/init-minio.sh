@@ -5,10 +5,8 @@ set -e
 echo "🚀 Starting MinIO initialization..."
 
 # Wait for MinIO to be ready
-echo ${MINIO_ROOT_USER}
-echo ${MINIO_ROOT_PASSWORD}
 echo "⏳ Waiting for MinIO to be ready..."
-until mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} 2>/dev/null; do
+until mc alias set myminio http://minio:9000 ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} 2>/dev/null; do
   echo "   Retrying in 2 seconds..."
   sleep 2
 done

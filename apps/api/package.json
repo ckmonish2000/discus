@@ -18,7 +18,7 @@
     "@hono/zod-validator": "^0.7.5",
     "hono": "^4.10.6",
     "minio": "workspaces/*",
-    "mistral": "workspaces/*",
+    "agents": "workspaces/*",
     "zod": "^4.1.12"
   }
 }

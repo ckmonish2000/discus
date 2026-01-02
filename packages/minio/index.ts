@@ -11,6 +11,13 @@ export default class MinioService {
         port?: number
     }) {
         const url = new URL(payload.endpoint);
+        console.log({
+            endPoint: url.hostname,
+            useSSL: payload.useSSL,
+            accessKey: payload.accessKey,
+            secretKey: payload.secretKey,
+            port: payload.port || parseInt(url.port),
+        })
         this.minioClient = new Minio.Client({
             endPoint: url.hostname,
             useSSL: payload.useSSL,

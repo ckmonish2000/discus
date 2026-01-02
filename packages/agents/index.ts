@@ -1,5 +1,7 @@
 import { Mistral } from '@mistralai/mistralai';
+import { Ollama } from 'ollama'
 import SYSTEM_PROMPT from './prompts/system.prompt';
+
 export default class MistralService {
     private mistralClient
 
@@ -16,44 +18,28 @@ export default class MistralService {
             },
             includeImageBase64: false
         });
+
         return ocrResponse
     }
 
     async analyzeText(message: string) {
+        let review = ''
         const prompt = SYSTEM_PROMPT + `\n\n` + message
+        const ollama = new Ollama({
+            host: process.env.OLLAMA_HOST || 'http://host.docker.internal:11434'
+        });
 
-        const textAnalysis = await fetch('http://host.docker.internal:12434/engines/llama.cpp/v1/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                "stream": false,
-                "model": process.env.LLM_MODEL,
-                "prompt": prompt
-            }),
+        const response = await ollama.generate({
+            model: process.env.LLM_MODEL || 'llama3.2:latest',
+            prompt,
+            stream:true
         })
 
-        const data = await textAnalysis.json() as any;
-        console.log(data)
-        return data.choices;
-    }
+        for await (const chunk of response) {
+            review += chunk.response
+        }
 
-    async streamAnalyzeText(message: string) {
-        const prompt = SYSTEM_PROMPT + `\n\n` + message
+        return review
 
-        const textAnalysis = await fetch('http://host.docker.internal:12434/engines/llama.cpp/v1/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                "stream": true,
-                "model": process.env.LLM_MODEL,
-                "prompt": prompt
-            }),
-        })
-
-        return textAnalysis.body;
     }
 }
