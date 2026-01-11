@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: infra/docker/dockerfile
+      dockerfile: infra/docker/api-server.dockerfile
     ports:
       - 8000:8000
     extra_hosts:
@@ -11,7 +11,20 @@ services:
       - .env.local
     volumes:
       - .:/app
-      
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/worker.dockerfile
+    env_file:
+      - .env.local
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy  
   minio:
     image: minio/minio
     ports:
@@ -40,5 +53,31 @@ services:
     entrypoint: /bin/sh
     command: -c "/init-minio.sh"
 
+  ffmpeg:
+    image: jrottenberg/ffmpeg:6.1-alpine
+    container_name: discus-ffmpeg
+    volumes:
+      - ./input:/input
+      - ./output:/output
+    entrypoint: ["sh"]
+    tty: true
+  
+  redis:
+    image: redis:alpine
+    container_name: discus-redis
+    ports:
+      - 6377:6379
+    volumes:
+      - redis_data:/data
+    env_file:
+      - .env.local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   storage_data:
+  redis_data:
+    driver: local

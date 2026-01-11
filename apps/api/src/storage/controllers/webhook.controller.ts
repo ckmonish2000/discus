@@ -2,8 +2,9 @@ import { Hono } from 'hono';
 import { minioService } from '../services/minio.service';
 import { StorageWebhookDto } from '../validators/webhook.dto';
 import MistralService from 'agents'
+import { ocrQueue } from '../../queues';
+
 const router = new Hono();
-import { stream } from 'hono/streaming'
 
 /**
  * POST /webhook
@@ -17,16 +18,22 @@ router.post('/webhook', async (c) => {
             throw new Error('Bucket name not found');
         }
 
-        const mistralService = new MistralService()
-        const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
-        const ocrResponse = await mistralService.processImageUrl(url);
-        const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val) => ({
-            analysis: await mistralService.analyzeText(val?.markdown),
-            context: val?.markdown,
-            page: val?.index
-        })) || []);
+        // const obj= await ocrQueue.add('analyze_text', {
+        //     fileType: 'image',
+        //     objectPath
+        // })
+        
+        // const mistralService = new MistralService()
+        // const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
+        // const ocrResponse = await mistralService.processImageUrl(url);
+        // const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val) => ({
+        //     analysis: await mistralService.analyzeText(val?.markdown),
+        //     context: val?.markdown,
+        //     page: val?.index
+        // })) || []);
 
-        return c.json({ url, textAnalysis })
+        // return c.json({ url, textAnalysis })
+        return c.json({})
     } catch (error) {
         console.log(error);
         throw error;
