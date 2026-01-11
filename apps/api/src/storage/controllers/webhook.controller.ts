@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
-import { minioService } from '../services/minio.service';
 import { StorageWebhookDto } from '../validators/webhook.dto';
-import MistralService from 'agents'
+
 import { imageQueue, videoQueue } from '../../queues';
 
 const router = new Hono();
@@ -12,39 +11,34 @@ const router = new Hono();
  */
 router.post('/webhook', async (c) => {
     try {
-        const { Key: objectName,Records }: StorageWebhookDto = await c.req.json();
-        const fileType = String(Records.at(0)?.s3?.object?.["userMetadata"]["content-type"]); 
+        let job;
+        const { Key: objectName, Records }: StorageWebhookDto = await c.req.json();
+        const fileType = String(Records.at(0)?.s3?.object?.["userMetadata"]["content-type"]);
         const [bucketName, ...objectPath] = objectName.split('/');
-        
+
         if (!bucketName) {
             throw new Error('Bucket name not found');
         }
 
-        if(fileType?.includes('image')) {            
-            const obj= await imageQueue.add('analyze_text', {
+        if (fileType?.includes('image')) {
+            job = await imageQueue.add('process_image', {
                 fileType: 'image',
+                bucketName,
                 objectPath
             })
         }
 
-        if(fileType?.includes('video')) {            
-            const obj= await videoQueue.add('analyze_text', {
+        if (fileType?.includes('video')) {
+            job = await videoQueue.add('process_video', {
                 fileType: 'video',
+                bucketName,
                 objectPath
             })
         }
-        
-        // const mistralService = new MistralService()
-        // const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
-        // const ocrResponse = await mistralService.processImageUrl(url);
-        // const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val) => ({
-        //     analysis: await mistralService.analyzeText(val?.markdown),
-        //     context: val?.markdown,
-        //     page: val?.index
-        // })) || []);
 
-        // return c.json({ url, textAnalysis })
-        return c.json({})
+
+
+        return c.json({ job })
     } catch (error) {
         console.log(error);
         throw error;

@@ -1,5 +1,5 @@
-import './src/image.worker'
-import './src/video.worker'
+import './workers/image.worker'
+import './workers/video.worker'
 // import ffmpeg from "fluent-ffmpeg";
 // import path from "path";
 

@@ -4,6 +4,7 @@ export enum QueueNames {
 }
 
 export type OCRJobData = {
+    bucketName: string;
     fileType: string;
     objectPath: string[];
 }
