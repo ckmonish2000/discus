@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { minioService } from '../services/minio.service';
 import { StorageWebhookDto } from '../validators/webhook.dto';
-import MistralService from 'agents'
+
+import { imageQueue, videoQueue } from '../../queues';
+
 const router = new Hono();
-import { stream } from 'hono/streaming'
 
 /**
  * POST /webhook
@@ -11,22 +11,34 @@ import { stream } from 'hono/streaming'
  */
 router.post('/webhook', async (c) => {
     try {
-        const { Key: objectName }: StorageWebhookDto = await c.req.json();
+        let job;
+        const { Key: objectName, Records }: StorageWebhookDto = await c.req.json();
+        const fileType = String(Records.at(0)?.s3?.object?.["userMetadata"]["content-type"]);
         const [bucketName, ...objectPath] = objectName.split('/');
+
         if (!bucketName) {
             throw new Error('Bucket name not found');
         }
 
-        const mistralService = new MistralService()
-        const url = await minioService.getPresignedUrl({ bucketName, objectName: objectPath.join('/'), isFetch: true });
-        const ocrResponse = await mistralService.processImageUrl(url);
-        const textAnalysis = await Promise.all(ocrResponse?.pages?.map(async (val) => ({
-            analysis: await mistralService.analyzeText(val?.markdown),
-            context: val?.markdown,
-            page: val?.index
-        })) || []);
+        if (fileType?.includes('image')) {
+            job = await imageQueue.add('process_image', {
+                fileType: 'image',
+                bucketName,
+                objectPath
+            })
+        }
 
-        return c.json({ url, textAnalysis })
+        if (fileType?.includes('video')) {
+            job = await videoQueue.add('process_video', {
+                fileType: 'video',
+                bucketName,
+                objectPath
+            })
+        }
+
+
+
+        return c.json({ job })
     } catch (error) {
         console.log(error);
         throw error;

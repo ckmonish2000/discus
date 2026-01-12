@@ -13,7 +13,7 @@ export const storageWebhookSchema = z.object({
         userIdentity: z.array(z.object({})),
         requestParameters: z.array(z.object({})),
         responseElements: z.array(z.object({})),
-        s3: z.array(z.object({})),
+        s3: z.object({}),
         source: z.array(z.object({})),
     }))
 })

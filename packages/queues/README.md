@@ -1,4 +1,4 @@
-# media-processor
+# queues
 
 To install dependencies:
 

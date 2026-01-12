@@ -1,5 +1,5 @@
 {
-  "name": "media-processor",
+  "name": "queues",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -8,5 +8,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "bullmq": "^5.66.4",
+    "ioredis": "^5.9.1"
   }
 }

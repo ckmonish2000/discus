@@ -19,5 +19,8 @@
   ],
   "dependencies": {
     "zod": "^4.1.12"
+  },
+  "overrides": {
+    "ioredis": "^5.9.1"
   }
 }
