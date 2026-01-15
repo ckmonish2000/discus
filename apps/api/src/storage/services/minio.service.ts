@@ -5,7 +5,7 @@ import MinioService from "minio";
  * This instance is shared across all storage routes to ensure consistent
  * configuration and efficient resource usage.
  */
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === 'developments';
 export const minioService = new MinioService({
     useSSL: isDevelopment,
     endpoint: isDevelopment ? process.env.MINIO_TUNNEL_BASE_URL! : process.env.MINIO_BASE_URL!,

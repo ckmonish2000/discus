@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 // Import individual controller modules
 import listBucketsRouter from './controllers/list-buckets.controller'
 import createBucketRouter from './controllers/create-bucket.controller'
-import uploadUrlRouter from './controllers/upload-url.controller'
+import uploadUrlRouter from './controllers/get-pre-signed-url.controller'
 import downloadUrlRouter from './controllers/download-url.controller'
 import listObjectsRouter from './controllers/list-objects.controller'
 import webhookRouter from './controllers/webhook.controller'
