@@ -36,3 +36,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Python
 __pycache__
 .venv
+
+# audio files
+*.wav
+*.txt
+
+# temporary media processing files
+workers/media-worker/src/assets/temp/

@@ -25,6 +25,10 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy  
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
 
   minio:
     image: minio/minio
