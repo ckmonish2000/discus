@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { minioService } from '../services/minio.service';
 import { storageObjectValidator, StorageObjectDto } from '../validators/upload-url.dto';
+import { rewriteMinioUrl } from '../utils/url-rewriter';
 
 const router = new Hono();
 
@@ -17,7 +18,9 @@ router.post('/object', storageObjectValidator, async (c) => {
             isFetch: false, // Upload URL
             expires: 60 * 60 * 24 * 7, // 7 days
         });
-        return c.json({ url: response });
+
+        const publickURL = rewriteMinioUrl(response);
+        return c.json({ url: publickURL });
     } catch (error) {
         console.log(error);
         throw error;
