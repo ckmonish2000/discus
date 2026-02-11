@@ -8,7 +8,7 @@ import MinioService from "minio";
 const isDevelopment = process.env.NODE_ENV === 'development';
 export const minioService = new MinioService({
     useSSL: isDevelopment,
-    endpoint: isDevelopment ? process.env.MINIO_TUNNEL_BASE_URL! : process.env.MINIO_BASE_URL!,
+    endpoint: process.env.MINIO_BASE_URL!,
     accessKey: process.env.MINIO_ACCESS_KEY!,
     secretKey: process.env.MINIO_SECRET_KEY!,
 });
