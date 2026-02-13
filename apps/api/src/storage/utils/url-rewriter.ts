@@ -1,3 +1,4 @@
+import { env } from "common";
 /**
  * Rewrites MinIO internal URLs to public-facing URLs
  *
@@ -9,9 +10,8 @@
  */
 export function rewriteMinioUrl(internalUrl: string): string {
   // Get the public URL from environment (what users/browsers should use)
-  const publicBaseUrl = process.env.MINIO_PUBLIC_URL || "http://localhost:9000";
-  console.log(internalUrl, "internalUrl");
-  console.log(publicBaseUrl, "publicBaseUrl");
+  const publicBaseUrl = env.MINIO_PUBLIC_URL || "http://localhost:9000";
+  
   try {
     const url = new URL(internalUrl);
     const publicUrl = new URL(publicBaseUrl);

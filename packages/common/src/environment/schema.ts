@@ -18,6 +18,9 @@ export const envSchema = z.object({
     .string()
     .regex(/^\d+$/, "PORT must be a number")
     .transform((val) => parseInt(val, 10)),
+  REDIS_HOST: z.string().nonempty(),
+  REDIS_PORT: z.string().nonempty(),
+  REDIS_PASSWORD: z.string().nonempty(),
 });
 
 export type Env = z.infer<typeof envSchema>;

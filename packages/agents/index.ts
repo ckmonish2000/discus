@@ -1,12 +1,13 @@
 import { Mistral } from '@mistralai/mistralai';
 import { Ollama } from 'ollama'
 import SYSTEM_PROMPT from './prompts/system.prompt';
+import { env } from "common";
 
 export default class MistralService {
     private mistralClient
 
     constructor() {
-        this.mistralClient = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
+        this.mistralClient = new Mistral({ apiKey: env.MISTRAL_API_KEY });
     }
 
     async processImageUrl(documentUrl: string) {
@@ -26,11 +27,11 @@ export default class MistralService {
         let review = ''
         const prompt = SYSTEM_PROMPT + `\n\n` + message
         const ollama = new Ollama({
-            host: process.env.OLLAMA_HOST || 'http://host.docker.internal:11434'
+            host: env.OLLAMA_HOST || 'http://host.docker.internal:11434'
         });
 
         const response = await ollama.generate({
-            model: process.env.LLM_MODEL || 'llama3.2:latest',
+            model: env.LLM_MODEL || 'llama3.2:latest',
             prompt,
             stream:true
         })
