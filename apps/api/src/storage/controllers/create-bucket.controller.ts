@@ -11,8 +11,8 @@ const router = new Hono();
 router.post('/bucket', storageBucketValidator, async (c) => {
     try {
         const { bucketName }: CreateBucketDto = await c.req.json();
-        const response = await minioService.createBucket(bucketName);
-        return c.json(response);
+        const data = await minioService.createBucket(bucketName);
+        return c.json({ success: true, data });
     } catch (error) {
         console.log(error);
         throw error;

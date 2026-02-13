@@ -21,7 +21,7 @@ router.post("/object/download", storageObjectValidator, async (c) => {
       isFetch: true, // Download URL
       expires: env.minio.EXPIRES_IN, // 7 days
     });
-    return c.json({ url: response });
+    return c.json({ success: true, data: { url: response } });
   } catch (error) {
     console.log(error);
     throw error;

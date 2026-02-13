@@ -9,8 +9,8 @@ const router = new Hono();
  */
 router.get('/bucket', async (c) => {
     try {
-        const response = await minioService.listBuckets();
-        return c.json(response);
+        const data = await minioService.listBuckets();
+        return c.json({ success: true, data });
     } catch (error) {
         console.log(error);
         throw error;

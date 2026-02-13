@@ -5,6 +5,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof AppError) {
     return c.json(
       {
+        success: false,
         message: err.message,
         status: err.statusCode,
       },
@@ -13,6 +14,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
   return c.json(
     {
+      success: false,
       message: "Internal server error",
       status: 500,
     },

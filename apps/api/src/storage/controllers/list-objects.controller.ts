@@ -11,8 +11,8 @@ const router = new Hono();
 router.post('/files', storageBucketValidator, async (c) => {
     try {
         const { bucketName }: ListBucketDto = await c.req.json();
-        const response = await minioService.listObjects(bucketName);
-        return c.json(response);
+        const data = await minioService.listObjects(bucketName);
+        return c.json({ success: true, data });
     } catch (error) {
         console.log(error);
         throw error;

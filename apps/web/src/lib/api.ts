@@ -1,5 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+type ApiResponse<T> = {
+  success: true
+  data: T
+}
+
+type ApiErrorResponse = {
+  success: false
+  message: string
+  status: number
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -9,11 +20,14 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     },
   })
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`)
+  const json = await response.json() as ApiResponse<T> | ApiErrorResponse
+
+  if (!response.ok || !json.success) {
+    const error = json as ApiErrorResponse
+    throw new Error(error.message || `API Error: ${response.statusText}`)
   }
 
-  return response.json()
+  return (json as ApiResponse<T>).data
 }
 
 export type Bucket = {

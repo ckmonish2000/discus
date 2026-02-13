@@ -24,7 +24,7 @@ router.post("/object", storageObjectValidator, async (c) => {
     });
 
     const publickURL = rewriteMinioUrl(response);
-    return c.json({ url: publickURL });
+    return c.json({ success: true, data: { url: publickURL } });
   } catch (error) {
     console.log(error);
     throw error;

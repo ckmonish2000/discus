@@ -38,7 +38,7 @@ router.post('/webhook', async (c) => {
 
 
 
-        return c.json({ job })
+        return c.json({ success: true, data: { job } })
     } catch (error) {
         console.log(error);
         throw error;
