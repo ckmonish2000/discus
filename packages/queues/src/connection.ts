@@ -6,9 +6,9 @@ let redis: Redis | null = null;
 export const getRedisConnection = (): Redis => {
     if (!redis) {
         redis = new Redis({
-            host: env.REDIS_HOST,
-            port: Number(env.REDIS_PORT),
-            password: env.REDIS_PASSWORD,
+            host: env.redis.REDIS_HOST,
+            port: Number(env.redis.REDIS_PORT),
+            password: env.redis.REDIS_PASSWORD,
             maxRetriesPerRequest: null,
             enableReadyCheck: false,
         });

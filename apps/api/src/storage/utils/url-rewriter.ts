@@ -10,7 +10,7 @@ import { env } from "common";
  */
 export function rewriteMinioUrl(internalUrl: string): string {
   // Get the public URL from environment (what users/browsers should use)
-  const publicBaseUrl = env.MINIO_PUBLIC_URL || "http://localhost:9000";
+  const publicBaseUrl = env.minio.MINIO_PUBLIC_URL || "http://localhost:9000";
   
   try {
     const url = new URL(internalUrl);

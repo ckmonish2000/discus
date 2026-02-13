@@ -11,6 +11,6 @@ app.route("/", routes);
 app.route("/health", health);
 
 export default {
-  port: env.PORT,
+  port: env.api.PORT,
   fetch: app.fetch,
 };
