@@ -1,4 +1,4 @@
-import { env } from "common";
+import { env } from "../environment";
 /**
  * Rewrites MinIO internal URLs to public-facing URLs
  *

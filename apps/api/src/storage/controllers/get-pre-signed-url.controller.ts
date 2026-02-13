@@ -4,8 +4,7 @@ import {
   storageObjectValidator,
   StorageObjectDto,
 } from "../validators/upload-url.dto";
-import { rewriteMinioUrl } from "../utils/url-rewriter";
-import { env } from "common";
+import { env, rewriteMinioUrl } from "common";
 
 const router = new Hono();
 

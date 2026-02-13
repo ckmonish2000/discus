@@ -4,7 +4,7 @@ import {
   storageObjectValidator,
   StorageObjectDto,
 } from "../validators/download-url.dto";
-import { env } from "common";
+import { env, rewriteMinioUrl } from "common";
 
 const router = new Hono();
 
@@ -21,7 +21,8 @@ router.post("/object/download", storageObjectValidator, async (c) => {
       isFetch: true, // Download URL
       expires: env.minio.EXPIRES_IN, // 7 days
     });
-    return c.json({ success: true, data: { url: response } });
+    const publickURL = rewriteMinioUrl(response);
+    return c.json({ success: true, data: { url: publickURL } });
   } catch (error) {
     console.log(error);
     throw error;

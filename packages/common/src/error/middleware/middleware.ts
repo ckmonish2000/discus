@@ -3,6 +3,7 @@ import type { ErrorHandler } from "hono";
 
 export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof AppError) {
+    console.log(err,'mara')
     return c.json(
       {
         success: false,

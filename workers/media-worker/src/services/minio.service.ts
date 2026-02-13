@@ -7,7 +7,7 @@ import { env } from "common";
  */
 const isDevelopment = env.api.NODE_ENV === 'development';
 export const minioService = new MinioService({
-    useSSL: isDevelopment,
+    useSSL: !isDevelopment,
     endpoint: env.minio.MINIO_BASE_URL,
     accessKey: env.minio.MINIO_ACCESS_KEY,
     secretKey: env.minio.MINIO_SECRET_KEY,
