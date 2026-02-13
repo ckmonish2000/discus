@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "hono": "^4.11.9",
     "zod": "^4.3.6"
   }
 }

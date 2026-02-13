@@ -2,9 +2,12 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import routes from "./routes";
 import health from "./health/route";
-import { env } from "common";
+import { env, AppError, errorHandler } from "common";
 
 const app = new Hono();
+
+app.onError(errorHandler);
+
 app.use("*", cors());
 
 app.route("/", routes);
