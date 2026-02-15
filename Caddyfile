@@ -1,0 +1,9 @@
+:9000 {
+      reverse_proxy minio:9000 {
+          header_up Host minio:9000
+          header_up X-Forwarded-Proto {scheme}
+      }
+  }
+:9001 {
+    reverse_proxy minio:9001
+}

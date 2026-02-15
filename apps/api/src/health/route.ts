@@ -4,7 +4,7 @@ const router = new Hono()
 
 router.get("/", (c) => {
     c.status(200)
-    return c.json({ message: "ok" })
+    return c.json({ success: true, data: { message: "ok" } })
 });
 
 export default router

@@ -1,5 +1,5 @@
 {
-  "name": "agents",
+  "name": "common",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -10,8 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "common": "workspace/*",
-    "@mistralai/mistralai": "^1.10.0",
-    "ollama": "^0.6.3"
+    "hono": "^4.11.9",
+    "zod": "^4.3.6"
   }
 }

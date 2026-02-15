@@ -1,13 +1,14 @@
 import Redis from "ioredis";
+import { env } from "common";
 
 let redis: Redis | null = null;
 
 export const getRedisConnection = (): Redis => {
     if (!redis) {
         redis = new Redis({
-            host: process.env.REDIS_HOST,
-            port: Number(process.env.REDIS_PORT),
-            password: process.env.REDIS_PASSWORD,
+            host: env.redis.REDIS_HOST,
+            port: Number(env.redis.REDIS_PORT),
+            password: env.redis.REDIS_PASSWORD,
             maxRetriesPerRequest: null,
             enableReadyCheck: false,
         });

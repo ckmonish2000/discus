@@ -24,13 +24,14 @@ services:
       redis:
         condition: service_healthy
       minio:
-        condition: service_healthy  
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
 
   minio:
     image: minio/minio
-    ports:
-      - 9000:9000
-      - 9001:9001
     env_file:
       - .env.local
     command: server /data --console-address ":9001"
@@ -62,7 +63,7 @@ services:
       - ./output:/output
     entrypoint: ["sh"]
     tty: true
-  
+
   redis:
     image: redis:alpine
     container_name: discus-redis
@@ -78,7 +79,24 @@ services:
       timeout: 5s
       retries: 5
 
+  caddy:
+    image: caddy:2
+    depends_on:
+      minio:
+        condition: service_healthy
+    ports:
+      - 80:80
+      - 443:443
+      - 9001:9001
+      - 9000:9000
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
 volumes:
   storage_data:
   redis_data:
     driver: local
+  caddy-data:
+  caddy-config:
