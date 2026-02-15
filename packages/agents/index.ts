@@ -3,7 +3,7 @@ import { Ollama } from "ollama";
 import SYSTEM_PROMPT from "./prompts/system.prompt";
 import { env, AppError } from "common";
 
-export default class MistralService {
+export default class AgentService {
   private mistralClient;
 
   constructor() {
