@@ -17,7 +17,7 @@ router.post("/webhook", async (c) => {
       Records.at(0)?.s3?.object?.["userMetadata"]["content-type"],
     );
     const [bucketName, ...objectPath] = objectName.split("/");
-
+    
     if (!bucketName) {
       throw new Error("Bucket name not found");
     }

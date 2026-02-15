@@ -1,6 +1,8 @@
 import * as Minio from "minio";
 import { AppError } from "common";
-
+import fs from "fs";
+import path from "path";
+import { Stream } from "stream";
 export default class MinioService {
   private minioClient: Minio.Client;
 
@@ -128,6 +130,41 @@ export default class MinioService {
 
       stream.on("data", (obj) => files.push(obj));
       stream.on("end", () => resolve(files));
+      stream.on("error", reject);
+    });
+  }
+
+  async saveObjectToLocation(
+    bucketName: string,
+    objectName: string,
+    location: string,
+  ) {
+    try {
+      if (!fs.existsSync(location)) {
+        fs.mkdirSync(location, { recursive: true });
+      }
+      const fileName = path.basename(objectName);
+      const filePath = path.join(location, fileName);
+      const stream = await this.minioClient.getObject(bucketName, objectName);
+      await this.writeStreamToPath(stream, filePath);
+      return filePath;
+    } catch (error) {
+      throw new AppError(
+        "Failed to save object to location",
+        500,
+        "saveObjectToLocation",
+        error,
+        { bucketName, objectName, location },
+      );
+    }
+  }
+
+  async writeStreamToPath(stream: Stream.Readable, filePath: string) {
+    return new Promise<void>((resolve, reject) => {
+      const fileStream = fs.createWriteStream(filePath);
+      stream.pipe(fileStream);
+      fileStream.on("finish", resolve);
+      fileStream.on("error", reject);
       stream.on("error", reject);
     });
   }
