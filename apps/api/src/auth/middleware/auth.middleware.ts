@@ -106,3 +106,11 @@ export const getUserId = (c: Context): string => {
   }
   return userId;
 };
+
+/**
+ * Makes c.get("userId") / c.get("authMethod") typed across every route,
+ * rather than each handler casting.
+ */
+declare module "hono" {
+  interface ContextVariableMap extends AuthVariables {}
+}
