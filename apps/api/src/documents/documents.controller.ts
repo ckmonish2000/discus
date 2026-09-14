@@ -13,7 +13,13 @@ router.get("/", validate("query", listDocumentsSchema), async (c) => {
   const q = c.req.valid("query");
   const { items, total } = await documentsService.list(getUserId(c), q);
 
-  return c.json(okList(items, total, { limit: q.limit, offset: q.offset }));
+  // sizeBytes is a BigInt column; JSON.stringify cannot serialize it.
+  return c.json(
+    okList(items.map(serializeDocument), total, {
+      limit: q.limit,
+      offset: q.offset,
+    }),
+  );
 });
 
 /** GET /documents/:id — includes full OCR text. */

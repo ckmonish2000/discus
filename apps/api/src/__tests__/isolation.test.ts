@@ -195,6 +195,39 @@ describe("money round-trip", () => {
   });
 });
 
+describe("regressions", () => {
+  test("document list serializes BigInt sizeBytes", async () => {
+    // documents.sizeBytes is a BigInt column. The list handler returned rows
+    // unserialized, and JSON.stringify threw — a 500 on a plain list call.
+    await asUser(alice, "/documents", {
+      method: "POST",
+      body: JSON.stringify({
+        bucketName: "invoices",
+        objectPath: `${unique()}/sized.pdf`,
+        mimeType: "application/pdf",
+        sizeBytes: 248000,
+      }),
+    });
+
+    const res = await asUser(alice, "/documents");
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    const sized = body.data.items.find((d: any) => d.sizeBytes !== null);
+    expect(typeof sized.sizeBytes).toBe("number");
+  });
+
+  test("malformed JSON returns 400, not 500", async () => {
+    // Hono throws HTTPException for an unparseable body. It was falling into
+    // the catch-all and reporting 500, blaming the server for a bad request.
+    const res = await request("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{not valid json",
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe("api keys", () => {
   test("a key authenticates and is revocable", async () => {
     const created = await asUser(alice, "/api-keys", {
