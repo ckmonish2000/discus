@@ -42,4 +42,9 @@ __pycache__
 *.txt
 
 # temporary media processing files
+# (the path is apps/workers/..., so the old rule below never matched anything)
 workers/media-worker/src/assets/temp/
+apps/workers/media-worker/src/assets/
+
+# generated analysis/reports, not part of the source tree
+claudedocs/
