@@ -1,15 +1,8 @@
 import { Hono } from "hono";
-import { z } from "zod";
-import { db, apiKeys } from "drizzle";
-import { eq, and, isNull, desc } from "drizzle-orm";
-import { validate, AppError } from "common";
+import { validate, createApiKeySchema } from "common";
 import { requireAuth, getUserId } from "../auth/middleware/auth.middleware";
-import { requireOwned, ok } from "../shared/crud.helpers";
-import { generateApiKey } from "../auth/services/crypto.service";
-
-const createKeySchema = z.object({
-  name: z.string().min(1).max(200),
-});
+import { ok } from "../shared/crud.helpers";
+import { apiKeysService } from "./api-keys.service";
 
 const router = new Hono();
 // Deliberately session-only: an API key must not be able to mint further API
@@ -17,78 +10,16 @@ const router = new Hono();
 router.use("*", requireAuth);
 
 /** GET /api-keys — never returns key material. */
-router.get("/", async (c) => {
-  const items = await db
-    .select({
-      id: apiKeys.id,
-      name: apiKeys.name,
-      prefix: apiKeys.prefix,
-      lastUsedAt: apiKeys.lastUsedAt,
-      revokedAt: apiKeys.revokedAt,
-      createdAt: apiKeys.createdAt,
-    })
-    .from(apiKeys)
-    .where(eq(apiKeys.userId, getUserId(c)))
-    .orderBy(desc(apiKeys.createdAt));
+router.get("/", async (c) => c.json(ok(await apiKeysService.list(getUserId(c)))));
 
-  return c.json(ok(items));
-});
+/** POST /api-keys — the only time the plaintext key is ever returned. */
+router.post("/", validate("json", createApiKeySchema), async (c) =>
+  c.json(ok(await apiKeysService.create(getUserId(c), c.req.valid("json"))), 201),
+);
 
-/**
- * POST /api-keys
- *
- * The plaintext key is returned exactly once, here. Only its SHA-256 is
- * stored, so it cannot be recovered afterwards — a lost key must be revoked
- * and replaced.
- */
-router.post("/", validate("json", createKeySchema), async (c) => {
-  const userId = getUserId(c);
-  const { name } = c.req.valid("json");
-  const { plaintext, hash, prefix } = generateApiKey();
-
-  const [key] = await db
-    .insert(apiKeys)
-    .values({ userId, name, keyHash: hash, prefix })
-    .returning({
-      id: apiKeys.id,
-      name: apiKeys.name,
-      prefix: apiKeys.prefix,
-      createdAt: apiKeys.createdAt,
-    });
-
-  if (!key) {
-    throw new AppError("Failed to create API key", 500, "createApiKey");
-  }
-
-  return c.json(
-    ok({
-      ...key,
-      key: plaintext,
-      warning: "Store this key now — it cannot be retrieved again.",
-    }),
-    201,
-  );
-});
-
-/**
- * DELETE /api-keys/:id — revokes rather than deletes, preserving the audit
- * trail of what the key did while it was live.
- */
-router.delete("/:id", async (c) => {
-  const [key] = await db
-    .update(apiKeys)
-    .set({ revokedAt: new Date() })
-    .where(
-      and(
-        eq(apiKeys.id, c.req.param("id")),
-        eq(apiKeys.userId, getUserId(c)),
-        isNull(apiKeys.revokedAt),
-      ),
-    )
-    .returning({ id: apiKeys.id, revokedAt: apiKeys.revokedAt });
-
-  requireOwned(key, "API key", "revokeApiKey");
-  return c.json(ok(key));
-});
+/** DELETE /api-keys/:id — revokes, preserving the audit trail. */
+router.delete("/:id", async (c) =>
+  c.json(ok(await apiKeysService.revoke(c.req.param("id"), getUserId(c)))),
+);
 
 export default router;

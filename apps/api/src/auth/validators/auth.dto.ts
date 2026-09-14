@@ -1,21 +1,12 @@
-import { z } from "zod";
-import { validate } from "common";
+import { validate, signupSchema, loginSchema } from "common";
 
-export const signupSchema = z.object({
-  email: z.email().transform((v) => v.toLowerCase().trim()),
-  password: z
-    .string()
-    .min(12, "Password must be at least 12 characters")
-    .max(256, "Password must be at most 256 characters"),
-});
-
-export const loginSchema = z.object({
-  email: z.email().transform((v) => v.toLowerCase().trim()),
-  password: z.string().min(1, "Password is required"),
-});
-
-export type SignupDto = z.infer<typeof signupSchema>;
-export type LoginDto = z.infer<typeof loginSchema>;
+/**
+ * The schemas themselves live in packages/common/src/schemas/auth so the web
+ * app can validate a signup form against the same rules the API enforces.
+ * Only the Hono middleware bindings stay here.
+ */
+export { signupSchema, loginSchema };
+export type { SignupDto, LoginDto } from "common";
 
 export const signupValidator = validate("json", signupSchema);
 export const loginValidator = validate("json", loginSchema);

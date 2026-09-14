@@ -1,18 +1,13 @@
-import { z } from "zod";
 import { AppError } from "common";
+import type { Pagination } from "common";
 
 /**
- * Standard list query. Cursor-free offset pagination is adequate here —
- * invoice lists are user-scoped and small.
+ * Response envelopes and the ownership guard.
+ *
+ * The request schemas that used to live here now sit in
+ * packages/common/src/schemas, so the web app can validate against the same
+ * definitions the API enforces.
  */
-export const paginationSchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(25),
-  offset: z.coerce.number().int().min(0).default(0),
-});
-
-export type Pagination = z.infer<typeof paginationSchema>;
-
-export const uuidParam = z.string().uuid("Invalid id");
 
 /**
  * Every resource lookup goes through here.
