@@ -51,15 +51,23 @@ export const extractInvoice = async (
 
     const structured = model.withStructuredOutput(jsonSchema);
 
+    // The timer is cleared on every exit path. Promise.race abandons the
+    // loser rather than cancelling it, so without this a fast success leaves
+    // a two-minute timer pending — once per document, on a worker that runs
+    // continuously.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     const result = await Promise.race([
       structured.invoke(buildExtractionPrompt(markdown, jsonSchema)),
-      new Promise<never>((_, reject) =>
-        setTimeout(
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
           () => reject(new Error("Extraction timed out")),
           opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-        ),
-      ),
-    ]);
+        );
+      }),
+    ]).finally(() => {
+      if (timer) clearTimeout(timer);
+    });
 
     return result as Record<string, unknown>;
   } catch (error) {
