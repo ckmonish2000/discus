@@ -27,6 +27,8 @@ export const envSchema = z.object({
       .string()
       .regex(/^\d+$/, "PORT must be a number")
       .transform((val) => parseInt(val, 10)),
+    /** Comma-separated origins allowed to make credentialed browser calls. */
+    CORS_ORIGINS: z.string().default("http://localhost:5173,http://localhost:3000"),
   }),
   redis: z.object({
     REDIS_HOST: z.string().nonempty(),

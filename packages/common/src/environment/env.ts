@@ -26,6 +26,7 @@ export default {
   api: {
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
+    CORS_ORIGINS: process.env.CORS_ORIGINS,
   },
   db: {
     DATABASE_URL: process.env.DATABASE_URL,
