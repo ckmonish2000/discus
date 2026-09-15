@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeAll, afterAll } from "bun:test";
 import { db, users } from "drizzle";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import app from "../index";
 
 /**
@@ -238,6 +238,31 @@ describe("regressions", () => {
     const defaults = body.data.filter((f: any) => f.isDefault);
     expect(defaults).toHaveLength(1);
     expect(defaults[0].name).toContain("EN 16931");
+  });
+
+  test("a failed format seed rolls the whole signup back", async () => {
+    // Without a transaction, a seeding failure leaves a committed user row
+    // with no session — and existsByEmail then blocks re-registration
+    // forever, making the address permanently unusable.
+    const email = `rollback-${unique()}@example.com`;
+
+    await db.execute(
+      sql`ALTER TABLE invoice_formats ADD CONSTRAINT probe_block CHECK (false) NOT VALID`,
+    );
+
+    const res = await request("/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: "a-sufficiently-long-password" }),
+    });
+
+    await db.execute(sql`ALTER TABLE invoice_formats DROP CONSTRAINT probe_block`);
+
+    expect(res.status).toBeGreaterThanOrEqual(400);
+
+    // The account must not exist, so the person can simply try again.
+    const [orphan] = await db.select().from(users).where(eq(users.email, email));
+    expect(orphan).toBeUndefined();
   });
 });
 

@@ -1,4 +1,5 @@
 import { AppError, type SignupDto, type LoginDto } from "common";
+import { db } from "drizzle";
 import { hashPassword, verifyPassword } from "./services/crypto.service";
 import { issueSession } from "./services/session.service";
 import { usersRepository } from "./users.repository";
@@ -22,20 +23,29 @@ export const authService = {
       );
     }
 
-    const user = await usersRepository.create({
-      email: body.email,
-      passwordHash: await hashPassword(body.password),
+    // User creation and format seeding must be atomic — if seeding fails,
+    // the user row is rolled back so the email can be re-registered.
+    const user = await db.transaction(async (tx) => {
+      const created = await usersRepository.create(
+        {
+          email: body.email,
+          passwordHash: await hashPassword(body.password),
+        },
+        tx,
+      );
+
+      if (!created) {
+        throw new AppError("Failed to create account", 500, "signup");
+      }
+
+      // Every account starts with a usable format. Extraction reads the user's
+      // default schema, and seeding was otherwise manual — an account that
+      // uploaded before visiting settings would have had nothing to extract
+      // against. seedDefault is idempotent, so this is safe to call again.
+      await formatsService.seedDefault(created.id, tx);
+
+      return created;
     });
-
-    if (!user) {
-      throw new AppError("Failed to create account", 500, "signup");
-    }
-
-    // Every account starts with a usable format. Extraction reads the user's
-    // default schema, and seeding was otherwise manual — an account that
-    // uploaded before visiting settings would have had nothing to extract
-    // against. seedDefault is idempotent, so this is safe to call again.
-    await formatsService.seedDefault(user.id);
 
     return { user, session: await issueSession(user.id) };
   },
