@@ -191,15 +191,41 @@ export const applyMapping = (
     : [];
 
   // Anything the format did not map to a core column stays queryable in the
-  // JSONB column rather than being dropped.
-  const mappedTopLevel = new Set(
+  // JSONB column rather than being dropped. Only the exact mapped paths are
+  // excluded — a path like "vendor.name" removes just that leaf, not the
+  // whole "vendor" object, so unmapped sibling fields (vendor.email, etc.)
+  // survive into `data` with their nested shape intact.
+  const mappedPaths = new Set(
     Object.entries(fieldMapping)
       .filter(([, core]) => core !== null)
-      .map(([path]) => path.split(".")[0]!),
+      .map(([path]) => path),
   );
+
+  const pruneMapped = (value: unknown, prefix: string): unknown => {
+    if (mappedPaths.has(prefix)) return undefined;
+    if (
+      value === null ||
+      typeof value !== "object" ||
+      Array.isArray(value)
+    ) {
+      return value;
+    }
+
+    const result: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(
+      value as Record<string, unknown>,
+    )) {
+      const childPath = `${prefix}.${key}`;
+      const pruned = pruneMapped(child, childPath);
+      if (pruned !== undefined) result[key] = pruned;
+    }
+    return Object.keys(result).length > 0 ? result : undefined;
+  };
+
   const data: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(extracted)) {
-    if (!mappedTopLevel.has(key)) data[key] = value;
+    const pruned = pruneMapped(value, key);
+    if (pruned !== undefined) data[key] = pruned;
   }
 
   return { vendor, invoice, lineItems, data, issues };

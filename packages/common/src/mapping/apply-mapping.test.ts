@@ -109,6 +109,31 @@ describe("applyMapping — core fields", () => {
     expect(m.invoice.currency).toBe("USD");
     expect(m.issues.join(" ")).toContain("currency");
   });
+
+  test("unmapped sub-fields of a partially mapped object survive into data", () => {
+    // vendor.name is mapped; email and phone are not. Dropping them would be
+    // silent data loss — Task 6 persists `data`, so what is missing here never
+    // reaches the database.
+    const m = applyMapping(
+      {
+        vendor: { name: "Acme", email: "ar@acme.test", phone: "555" },
+        total: 10,
+        currency: "USD",
+      },
+      { "vendor.name": "vendorName", total: "total", currency: "currency" },
+    );
+
+    expect(m.vendor.name).toBe("Acme");
+    expect(m.data).toEqual({ vendor: { email: "ar@acme.test", phone: "555" } });
+  });
+
+  test("a fully mapped object leaves no empty shell in data", () => {
+    const m = applyMapping(
+      { vendor: { name: "Acme" }, total: 10, currency: "USD" },
+      { "vendor.name": "vendorName", total: "total", currency: "currency" },
+    );
+    expect(m.data).toEqual({});
+  });
 });
 
 describe("applyMapping — ambiguity", () => {
