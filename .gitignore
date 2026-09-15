@@ -48,3 +48,4 @@ apps/workers/media-worker/src/assets/
 
 # generated analysis/reports, not part of the source tree
 claudedocs/
+.gstack/
