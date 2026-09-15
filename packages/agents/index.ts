@@ -65,3 +65,5 @@ export default class AgentService {
     }
   }
 }
+
+export * from "./src/invoice-extractor";
