@@ -226,6 +226,19 @@ describe("regressions", () => {
     });
     expect(res.status).toBe(400);
   });
+
+  test("a new account is seeded with a default format", async () => {
+    // Extraction needs a schema. Seeding was previously manual and called by
+    // nothing, so an account that uploaded before visiting settings had no
+    // format at all.
+    const res = await asUser(alice, "/formats");
+    expect(res.status).toBe(200);
+
+    const body = await json(res);
+    const defaults = body.data.filter((f: any) => f.isDefault);
+    expect(defaults).toHaveLength(1);
+    expect(defaults[0].name).toContain("EN 16931");
+  });
 });
 
 describe("api keys", () => {

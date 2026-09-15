@@ -2,6 +2,7 @@ import { AppError, type SignupDto, type LoginDto } from "common";
 import { hashPassword, verifyPassword } from "./services/crypto.service";
 import { issueSession } from "./services/session.service";
 import { usersRepository } from "./users.repository";
+import { formatsService } from "../formats/formats.service";
 
 /**
  * A valid Argon2 hash of a value no password will match. Verifying against it
@@ -29,6 +30,12 @@ export const authService = {
     if (!user) {
       throw new AppError("Failed to create account", 500, "signup");
     }
+
+    // Every account starts with a usable format. Extraction reads the user's
+    // default schema, and seeding was otherwise manual — an account that
+    // uploaded before visiting settings would have had nothing to extract
+    // against. seedDefault is idempotent, so this is safe to call again.
+    await formatsService.seedDefault(user.id);
 
     return { user, session: await issueSession(user.id) };
   },
