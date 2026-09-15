@@ -250,13 +250,22 @@ describe("regressions", () => {
       sql`ALTER TABLE invoice_formats ADD CONSTRAINT probe_block CHECK (false) NOT VALID`,
     );
 
-    const res = await request("/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: "a-sufficiently-long-password" }),
-    });
-
-    await db.execute(sql`ALTER TABLE invoice_formats DROP CONSTRAINT probe_block`);
+    // The drop must run even if the request throws rather than returning a
+    // response. A leaked CHECK (false) on invoice_formats would fail every
+    // later test that seeds a format — and would persist in the database
+    // beyond this run, since nothing else drops it.
+    let res: Response;
+    try {
+      res = await request("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "a-sufficiently-long-password" }),
+      });
+    } finally {
+      await db.execute(
+        sql`ALTER TABLE invoice_formats DROP CONSTRAINT IF EXISTS probe_block`,
+      );
+    }
 
     expect(res.status).toBeGreaterThanOrEqual(400);
 
