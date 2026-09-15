@@ -8,7 +8,7 @@
     "db:up": "docker compose up -d db redis",
     "db:generate": "bun run --filter=drizzle generate",
     "db:migrate": "bun run --filter=drizzle migrate",
-    "test": "REDIS_HOST=localhost REDIS_PORT=6377 bun test --env-file=.env.local",
+    "test": "REDIS_HOST=localhost REDIS_PORT=6377 DATABASE_URL=postgresql://postgres:postgres@localhost:5433/discus bun test --env-file=.env.local",
     "typecheck": "bunx tsc --noEmit -p apps/api/tsconfig.json"
   },
   "devDependencies": {
