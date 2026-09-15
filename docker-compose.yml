@@ -64,6 +64,23 @@ services:
     entrypoint: ["sh"]
     tty: true
 
+  db:
+    image: postgres:16-alpine
+    container_name: discus-db
+    ports:
+      # 5433 on the host: 5432 is commonly taken by another local postgres.
+      # Inside the compose network the port is still 5432.
+      - 5433:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file:
+      - .env.local
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:alpine
     container_name: discus-redis
@@ -96,6 +113,8 @@ services:
 
 volumes:
   storage_data:
+  db_data:
+    driver: local
   redis_data:
     driver: local
   caddy-data:

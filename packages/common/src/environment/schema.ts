@@ -27,11 +27,27 @@ export const envSchema = z.object({
       .string()
       .regex(/^\d+$/, "PORT must be a number")
       .transform((val) => parseInt(val, 10)),
+    /** Comma-separated origins allowed to make credentialed browser calls. */
+    CORS_ORIGINS: z.string().default("http://localhost:5173,http://localhost:3000"),
   }),
   redis: z.object({
     REDIS_HOST: z.string().nonempty(),
     REDIS_PORT: z.string().nonempty(),
     REDIS_PASSWORD: z.string().nonempty(),
+  }),
+  db: z.object({
+    DATABASE_URL: z.string().nonempty(),
+  }),
+  auth: z.object({
+    JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+    ACCESS_TOKEN_TTL: z
+      .string()
+      .regex(/^\d+$/, "ACCESS_TOKEN_TTL must be a number")
+      .transform((val) => parseInt(val, 10)),
+    REFRESH_TOKEN_TTL: z
+      .string()
+      .regex(/^\d+$/, "REFRESH_TOKEN_TTL must be a number")
+      .transform((val) => parseInt(val, 10)),
   }),
 });
 

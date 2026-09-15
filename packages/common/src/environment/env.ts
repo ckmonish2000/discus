@@ -26,5 +26,14 @@ export default {
   api: {
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
+    CORS_ORIGINS: process.env.CORS_ORIGINS,
+  },
+  db: {
+    DATABASE_URL: process.env.DATABASE_URL,
+  },
+  auth: {
+    JWT_SECRET: process.env.JWT_SECRET,
+    ACCESS_TOKEN_TTL: process.env.ACCESS_TOKEN_TTL,
+    REFRESH_TOKEN_TTL: process.env.REFRESH_TOKEN_TTL,
   },
 };
