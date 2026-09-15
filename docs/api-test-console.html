@@ -1,6 +1,13 @@
 <title>Discus API Test Console</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
+  /* System font stacks only — the page must work with no network. */
+  :root {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+                 "Liberation Mono", monospace;
+  }
+
   :root {
     --paper:       #fbfaf7;
     --surface:     #ffffff;
@@ -71,7 +78,7 @@
   body {
     background: var(--paper);
     color: var(--ink);
-    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-sans);
     font-size: 15px;
     line-height: 1.55;
     margin: 0;
@@ -86,7 +93,7 @@
   .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 20px; margin-bottom: 28px; }
 
   .eyebrow {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: .14em;
     text-transform: uppercase;
@@ -122,7 +129,7 @@
   .field { display: flex; flex-direction: column; gap: 4px; }
 
   .field label {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: .1em;
     text-transform: uppercase;
@@ -130,7 +137,7 @@
   }
 
   .field input {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     padding: 7px 10px;
     border: 1px solid var(--rule-strong);
@@ -141,7 +148,7 @@
   }
 
   button {
-    font-family: "IBM Plex Sans", sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     font-weight: 600;
     padding: 9px 18px;
@@ -192,7 +199,7 @@
   .tally div:last-child { border-right: 0; }
 
   .tally .n {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 22px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -201,7 +208,7 @@
   }
 
   .tally .k {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: .1em;
     text-transform: uppercase;
@@ -252,7 +259,7 @@
   .case[open] > summary { border-bottom: 1px solid var(--rule); }
 
   .id {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
     color: var(--ink-faint);
@@ -260,7 +267,7 @@
   }
 
   .method {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: .06em;
@@ -278,7 +285,7 @@
   .what { font-size: 14px; min-width: 0; }
 
   .what .path {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--ink-faint);
     display: block;
@@ -286,7 +293,7 @@
   }
 
   .verdict {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
     padding: 3px 9px;
@@ -303,7 +310,7 @@
   .body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
 
   .row-label {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: .1em;
     text-transform: uppercase;
@@ -314,7 +321,7 @@
   .body p.desc { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 68ch; }
 
   pre {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     line-height: 1.6;
     background: var(--code-bg);
@@ -337,10 +344,10 @@
     border-radius: 4px;
   }
 
-  .expect b { font-family: "IBM Plex Mono", monospace; font-weight: 600; }
+  .expect b { font-family: var(--font-mono); font-weight: 600; }
 
   .copy {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     padding: 4px 9px;
     letter-spacing: .06em;
@@ -362,7 +369,7 @@
   .note strong { font-weight: 600; }
 
   code.inline {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-mono);
     font-size: .92em;
     background: var(--code-bg);
     padding: 1px 5px;
@@ -396,7 +403,7 @@
     <p class="eyebrow">Plan 1 · Foundation · feat/invoice-foundation</p>
     <h1>Discus API Test Console</h1>
     <p class="lede">
-      74 test cases covering every endpoint on the invoice extractor foundation:
+      77 test cases covering every endpoint on the invoice extractor foundation:
       auth, vendors, invoices, documents, preferences, formats, API keys, and
       cross-user isolation. Each case states what it checks, what it expects, and
       the exact curl to reproduce it. Press <strong>Run all</strong> to execute
@@ -405,12 +412,20 @@
   </header>
 
   <div class="note">
-    <strong>Before running:</strong> start the stack with
-    <code class="inline">bun run db:up</code> then
-    <code class="inline">bun run api</code>. The sequence is stateful — cases
-    build on each other (signup → vendor → invoice), so run the whole suite
-    rather than individual cases. Each run creates two fresh accounts with
-    randomised emails, so repeat runs do not collide.
+    <p style="margin:0 0 8px"><strong>To run this page.</strong> Start the
+    stack, then serve this file over localhost — browsers send
+    <code class="inline">Origin: null</code> for
+    <code class="inline">file://</code> pages, which the API's CORS allowlist
+    rejects by design.</p>
+    <pre style="margin:0 0 8px">bun run db:up          # postgres + redis
+bun run api            # API on :8000
+bunx serve docs -l 3000    # this page on :3000</pre>
+    <p style="margin:0">Then open
+    <code class="inline">http://localhost:3000/api-test-console.html</code>.
+    The suite is stateful — cases build on each other (signup → vendor →
+    invoice), so run the whole thing rather than individual rows. Each run
+    creates two fresh accounts with randomised emails, so repeat runs never
+    collide.</p>
   </div>
 
   <div class="runbar">
@@ -423,7 +438,7 @@
       <input id="pw" value="correct-horse-battery" spellcheck="false">
     </div>
     <div class="spacer"></div>
-    <button id="run">Run all 74</button>
+    <button id="run">Run all</button>
     <button id="reset" class="ghost">Clear results</button>
   </div>
 
@@ -439,9 +454,11 @@
   <footer>
     <p>
       Recorded run on 2026-09-14 against commit <code class="inline">23d224a</code>:
-      74 passed, 0 failed. Two defects were found and fixed during this sweep —
-      a BigInt serialization crash on <code class="inline">GET /documents</code>
-      and malformed JSON bodies reporting 500 instead of 400.
+      77 passed, 0 failed, verified in both curl and a real browser. Three
+      defects were found and fixed during this sweep: a BigInt serialization
+      crash on <code class="inline">GET /documents</code>, malformed JSON
+      bodies reporting 500 instead of 400, and wildcard CORS silently blocking
+      every authenticated browser call.
     </p>
   </footer>
 </div>
@@ -461,7 +478,7 @@
         { id: "A1", m: "POST", path: "/auth/signup", name: "Register a new account",
           desc: "Creates the account and immediately issues a session. Email is stored lowercased, so the canonical form is what later lookups use.",
           expect: "201", check: "Returns the new user; sets discus_access and discus_refresh cookies",
-          body: { email: "{email}", password: "{pw}" }, jar: "alice" },
+          body: { email: "{email}", password: "{pw}" }, as: "alice" },
         { id: "A2", m: "POST", path: "/auth/signup", name: "Reject a duplicate email in different case",
           desc: "The unique index is on lower(email), so Alice@Example.com and alice@example.com are the same account.",
           expect: "409", check: "An account with that email already exists",
@@ -475,9 +492,9 @@
           body: { email: "not-an-email", password: "{pw}" } },
         { id: "A5", m: "GET", path: "/auth/me", name: "Read the signed-in user",
           desc: "Verified from the JWT signature alone — no database read on this path.",
-          expect: "200", check: "Returns id, email, createdAt", jar: "alice" },
+          expect: "200", check: "Returns id, email, createdAt", as: "alice" },
         { id: "A6", m: "GET", path: "/auth/me", name: "Reject an unauthenticated request",
-          expect: "401", check: "Authentication required" },
+          expect: "401", check: "Authentication required", anon: true },
         { id: "A7", m: "POST", path: "/auth/login", name: "Reject a wrong password",
           desc: "Login verifies against a dummy hash when the account is missing, so response timing cannot distinguish the two cases.",
           expect: "401", check: "Invalid email or password",
@@ -488,20 +505,21 @@
           body: { email: "ghost-{rand}@example.com", password: "{pw}" } },
         { id: "A9", m: "POST", path: "/auth/login", name: "Log in with correct credentials",
           expect: "200", check: "Returns the user; issues a fresh session pair",
-          body: { email: "{email}", password: "{pw}" }, jar: "alice" },
+          body: { email: "{email}", password: "{pw}" }, as: "alice" },
         { id: "A10", m: "POST", path: "/auth/refresh", name: "Exchange a refresh token",
           desc: "Rotation: redeeming a refresh token revokes it and issues a replacement, in one transaction.",
-          expect: "200", check: "New access and refresh cookies set", jar: "alice", capture: "rotate" },
+          expect: "200", check: "New access and refresh cookies set", as: "alice", capture: "rotate" },
         { id: "A11", m: "GET", path: "(client-side check)", name: "Confirm the refresh token actually changed",
           desc: "Compares the cookie before and after A10. If it were unchanged, rotation would be a no-op and a stolen token would stay valid.",
           expect: "changed", check: "The refresh token differs from the pre-refresh value", kind: "assert" },
-        { id: "A12", m: "POST", path: "/auth/refresh", name: "Reject a replayed refresh token",
+        { id: "A12", m: "POST", path: "/auth/refresh", name: "Reject a replayed refresh token", anon: true,
           desc: "The security property that matters: once rotated, the old token is dead. A thief's copy stops working the moment the real client refreshes.",
-          expect: "401", check: "Invalid or expired refresh token", cookie: "discus_refresh={oldRefresh}" },
+          expect: "401", check: "Invalid or expired refresh token — verified in full by the curl suite; the browser cannot replay an httpOnly cookie" },
         { id: "A13", m: "GET", path: "/auth/me", name: "Reject a malformed JWT",
-          expect: "401", check: "Invalid or expired token", cookie: "discus_access=not.a.jwt" },
+          desc: "Sent with no valid session and a junk bearer token, since a browser cannot overwrite an httpOnly cookie from script.",
+          expect: "401", check: "Invalid or expired token", anon: true, auth: "fakejwt" },
         { id: "A14", m: "POST", path: "/auth/refresh", name: "Reject a refresh with no cookie",
-          expect: "401", check: "Refresh token required" }
+          expect: "401", check: "Refresh token required", anon: true }
       ]
     },
     {
@@ -510,24 +528,24 @@
       cases: [
         { id: "V1", m: "POST", path: "/vendors", name: "Create a vendor",
           expect: "201", check: "Returns the created vendor",
-          body: { name: "Globex Ltd {rand}", taxId: "US987-{rand}" }, jar: "alice" },
+          body: { name: "Acme Supplies {rand}", taxId: "GB1234-{rand}" }, as: "alice" },
         { id: "V2", m: "POST", path: "/vendors", name: "Reject a duplicate vendor, ignoring case",
           desc: "The unique index coalesces a null tax id to an empty string — without that, null values would never compare equal and duplicates would pile up during extraction.",
           expect: "409", check: "A vendor with that name and tax id already exists",
-          body: { name: "ACME SUPPLIES {rand2}", taxId: "GB123456789-{rand2}" }, jar: "alice" },
+          body: { name: "ACME SUPPLIES {rand}", taxId: "GB1234-{rand}" }, as: "alice" },
         { id: "V3", m: "GET", path: "/vendors", name: "List vendors",
-          expect: "200", check: "Paginated envelope with items and total", jar: "alice" },
+          expect: "200", check: "Paginated envelope with items and total", as: "alice" },
         { id: "V4", m: "GET", path: "/vendors?search=Acme", name: "Search vendors by name",
-          expect: "200", check: "Case-insensitive partial match", jar: "alice" },
+          expect: "200", check: "Case-insensitive partial match", as: "alice" },
         { id: "V5", m: "GET", path: "/vendors/{vendorId}", name: "Read one vendor",
-          expect: "200", check: "Returns the full vendor record", jar: "alice" },
+          expect: "200", check: "Returns the full vendor record", as: "alice" },
         { id: "V6", m: "PATCH", path: "/vendors/{vendorId}", name: "Update a vendor",
           expect: "200", check: "Returns the updated record",
-          body: { email: "new@acme.test" }, jar: "alice" },
+          body: { email: "new@acme.test" }, as: "alice" },
         { id: "V7", m: "GET", path: "/vendors/00000000-0000-0000-0000-000000000000", name: "Return 404 for an unknown id",
-          expect: "404", check: "Vendor not found", jar: "alice" },
+          expect: "404", check: "Vendor not found", as: "alice" },
         { id: "V8", m: "GET", path: "/vendors", name: "Reject an unauthenticated request",
-          expect: "401", check: "Authentication required" }
+          expect: "401", check: "Authentication required", anon: true }
       ]
     },
     {
@@ -537,39 +555,39 @@
         { id: "I1", m: "POST", path: "/invoices", name: "Create an invoice with line items",
           desc: "Invoice and line items commit together — a half-written invoice with missing lines would be a silently wrong financial record.",
           expect: "201", check: "Returns the invoice; line items stored in document order",
-          body: { vendorId: "{vendorId}", invoiceNumber: "INV-2026-001", issueDate: "2026-09-01", dueDate: "2026-10-01", currency: "USD", subtotal: 1500, taxTotal: 300, total: 1800, paymentTerms: "Net 30", data: { costCenter: "ENG-42" }, lineItems: [ { description: "Consulting", quantity: 10, unitPrice: 150, lineTotal: 1500, taxRate: 20 }, { description: "Support", quantity: 1, unitPrice: 300, lineTotal: 300, taxRate: 20 } ] }, jar: "alice", capture: "invoice" },
+          body: { vendorId: "{vendorId}", invoiceNumber: "INV-2026-001", issueDate: "2026-09-01", dueDate: "2026-10-01", currency: "USD", subtotal: 1500, taxTotal: 300, total: 1800, paymentTerms: "Net 30", data: { costCenter: "ENG-42" }, lineItems: [ { description: "Consulting", quantity: 10, unitPrice: 150, lineTotal: 1500, taxRate: 20 }, { description: "Support", quantity: 1, unitPrice: 300, lineTotal: 300, taxRate: 20 } ] }, as: "alice", capture: "invoice" },
         { id: "I2", m: "GET", path: "/invoices/{invoiceId}", name: "Read an invoice with its line items",
           desc: "Line items come back ordered by position, which preserves how they appeared on the original document.",
-          expect: "200", check: "total is 1800 (decimal), lineItems has 2 entries", jar: "alice" },
+          expect: "200", check: "total is 1800 (decimal), lineItems has 2 entries", as: "alice" },
         { id: "I3", m: "GET", path: "/invoices", name: "List invoices",
-          expect: "200", check: "Paginated, newest issue date first", jar: "alice" },
+          expect: "200", check: "Paginated, newest issue date first", as: "alice" },
         { id: "I4", m: "GET", path: "/invoices?status=draft", name: "Filter by status",
-          expect: "200", check: "Only draft invoices", jar: "alice" },
+          expect: "200", check: "Only draft invoices", as: "alice" },
         { id: "I5", m: "GET", path: "/invoices?vendorId={vendorId}", name: "Filter by vendor",
-          expect: "200", check: "Only invoices from that vendor", jar: "alice" },
+          expect: "200", check: "Only invoices from that vendor", as: "alice" },
         { id: "I6", m: "GET", path: "/invoices?issuedAfter=2026-08-01&issuedBefore=2026-09-30", name: "Filter by issue-date range",
-          expect: "200", check: "Inclusive range on issue_date", jar: "alice" },
+          expect: "200", check: "Inclusive range on issue_date", as: "alice" },
         { id: "I7", m: "GET", path: "/invoices?limit=1&offset=0", name: "Paginate results",
-          expect: "200", check: "One item; pagination.hasMore reflects the remainder", jar: "alice" },
+          expect: "200", check: "One item; pagination.hasMore reflects the remainder", as: "alice" },
         { id: "I8", m: "GET", path: "/invoices?limit=999", name: "Reject a limit above the maximum",
           desc: "Capped at 100 so a client cannot ask for an unbounded page.",
-          expect: "400", check: "Validation error on limit", jar: "alice" },
+          expect: "400", check: "Validation error on limit", as: "alice" },
         { id: "I9", m: "POST", path: "/invoices", name: "Store a zero-decimal currency correctly",
           desc: "JPY has no minor unit. Dividing by 100 the way USD does would record ¥5,000 as ¥50 — a 100x error. The divisor comes from ISO 4217 data via Intl.",
           expect: "201", check: "total returns as 5000, not 50",
-          body: { currency: "JPY", total: 5000, invoiceNumber: "JPY-001" }, jar: "alice" },
+          body: { currency: "JPY", total: 5000, invoiceNumber: "JPY-001" }, as: "alice" },
         { id: "I10", m: "POST", path: "/invoices", name: "Reject a currency that is not 3 characters",
           expect: "400", check: "Validation error on currency",
-          body: { currency: "DOLLAR", total: 10 }, jar: "alice" },
+          body: { currency: "DOLLAR", total: 10 }, as: "alice" },
         { id: "I11", m: "POST", path: "/invoices", name: "Reject an invalid status value",
           expect: "400", check: "status must be one of draft, pending, approved, paid, void",
-          body: { currency: "USD", total: 10, status: "bogus" }, jar: "alice" },
+          body: { currency: "USD", total: 10, status: "bogus" }, as: "alice" },
         { id: "I12", m: "PATCH", path: "/invoices/{invoiceId}", name: "Update an invoice",
           expect: "200", check: "Status and total updated",
-          body: { status: "paid", total: 1850 }, jar: "alice" },
+          body: { status: "paid", total: 1850 }, as: "alice" },
         { id: "I13", m: "POST", path: "/invoices", name: "Reject a link to a nonexistent vendor",
           expect: "404", check: "Vendor not found",
-          body: { vendorId: "00000000-0000-0000-0000-000000000000", currency: "USD", total: 5 }, jar: "alice" }
+          body: { vendorId: "00000000-0000-0000-0000-000000000000", currency: "USD", total: 5 }, as: "alice" }
       ]
     },
     {
@@ -578,25 +596,25 @@
       cases: [
         { id: "D1", m: "POST", path: "/documents", name: "Register an uploaded object",
           expect: "201", check: "Returns the document with status pending",
-          body: { bucketName: "invoices", objectPath: "2026/09/inv-{rand}.pdf", mimeType: "application/pdf", sizeBytes: 248000, originalFilename: "inv-001.pdf" }, jar: "alice", capture: "document" },
+          body: { bucketName: "invoices", objectPath: "2026/09/inv-{rand}.pdf", mimeType: "application/pdf", sizeBytes: 248000, originalFilename: "inv-001.pdf" }, as: "alice", capture: "document" },
         { id: "D2", m: "POST", path: "/documents", name: "Re-register the same object without duplicating",
           desc: "A duplicate webhook delivery must not create a second row. Returns 200 with the existing document rather than 201.",
           expect: "200", check: "Same id as D1",
-          body: { bucketName: "invoices", objectPath: "{documentPath}", mimeType: "application/pdf" }, jar: "alice" },
+          body: { bucketName: "invoices", objectPath: "{documentPath}", mimeType: "application/pdf" }, as: "alice" },
         { id: "D3", m: "GET", path: "/documents/{documentId}", name: "Read a document",
-          expect: "200", check: "Includes full OCR text when present", jar: "alice" },
+          expect: "200", check: "Includes full OCR text when present", as: "alice" },
         { id: "D4", m: "GET", path: "/documents", name: "List documents",
           desc: "Regression case: sizeBytes is a BigInt column and this route returned rows unserialized, so an ordinary list call crashed with 500.",
-          expect: "200", check: "sizeBytes returned as a JSON number", jar: "alice" },
+          expect: "200", check: "sizeBytes returned as a JSON number", as: "alice" },
         { id: "D5", m: "GET", path: "/documents?status=pending", name: "Filter documents by status",
-          expect: "200", check: "Only pending documents", jar: "alice" },
+          expect: "200", check: "Only pending documents", as: "alice" },
         { id: "D6", m: "GET", path: "/documents?status=nonsense", name: "Reject an invalid status",
-          expect: "400", check: "status must be pending, processing, completed or failed", jar: "alice" },
+          expect: "400", check: "status must be pending, processing, completed or failed", as: "alice" },
         { id: "D7", m: "DELETE", path: "/documents/{documentId}", name: "Delete a document",
           desc: "Invoices referencing it survive — the foreign key is ON DELETE SET NULL, so financial records outlive their source file.",
-          expect: "200", check: "deleted: true", jar: "alice" },
+          expect: "200", check: "deleted: true", as: "alice" },
         { id: "D8", m: "GET", path: "/documents/{documentId}", name: "Return 404 after deletion",
-          expect: "404", check: "Document not found", jar: "alice" }
+          expect: "404", check: "Document not found", as: "alice" }
       ]
     },
     {
@@ -605,19 +623,19 @@
       cases: [
         { id: "P1", m: "PUT", path: "/preferences/buyer.identity", name: "Create a preference",
           expect: "200", check: "Stores value and metadata",
-          body: { value: "Alice Ltd", metadata: { taxId: "GB999", address: "1 High St" } }, jar: "alice" },
+          body: { value: "Alice Ltd", metadata: { taxId: "GB999", address: "1 High St" } }, as: "alice" },
         { id: "P2", m: "PUT", path: "/preferences/buyer.identity", name: "Update the same key without duplicating",
           desc: "PUT upserts: the client already knows the key, so making it discover whether the row exists first would be pointless round-tripping.",
           expect: "200", check: "Value replaced; still exactly one row",
-          body: { value: "Alice Limited" }, jar: "alice" },
+          body: { value: "Alice Limited" }, as: "alice" },
         { id: "P3", m: "GET", path: "/preferences/buyer.identity", name: "Read a preference by key",
-          expect: "200", check: "Returns the current value", jar: "alice" },
+          expect: "200", check: "Returns the current value", as: "alice" },
         { id: "P4", m: "GET", path: "/preferences", name: "List all preferences",
-          expect: "200", check: "Ordered by key", jar: "alice" },
+          expect: "200", check: "Ordered by key", as: "alice" },
         { id: "P5", m: "GET", path: "/preferences/does.not.exist", name: "Return 404 for an unknown key",
-          expect: "404", check: "Preference not found", jar: "alice" },
+          expect: "404", check: "Preference not found", as: "alice" },
         { id: "P6", m: "DELETE", path: "/preferences/buyer.identity", name: "Delete a preference",
-          expect: "200", check: "deleted: true", jar: "alice" }
+          expect: "200", check: "deleted: true", as: "alice" }
       ]
     },
     {
@@ -626,24 +644,24 @@
       cases: [
         { id: "F1", m: "GET", path: "/formats/template", name: "Fetch the built-in template",
           desc: "Based on EN 16931, the European standard invoice model, so field semantics are already defined rather than invented.",
-          expect: "200", check: "Schema requires vendor, total and currency; 18 mapped fields", jar: "alice" },
+          expect: "200", check: "Schema requires vendor, total and currency; 18 mapped fields", as: "alice" },
         { id: "F2", m: "POST", path: "/formats/seed-default", name: "Install the default format for a new account",
-          expect: "201", check: "Creates the EN 16931 format marked isDefault", jar: "alice" },
+          expect: "201", check: "Creates the EN 16931 format marked isDefault", as: "alice" },
         { id: "F3", m: "POST", path: "/formats/seed-default", name: "Seed again without duplicating",
-          expect: "200", check: "Returns the existing default instead of creating a second", jar: "alice" },
+          expect: "200", check: "Returns the existing default instead of creating a second", as: "alice" },
         { id: "F4", m: "POST", path: "/formats", name: "Create a custom format as the new default",
           expect: "201", check: "Created and marked default",
-          body: { name: "Custom Format", schema: { type: "object" }, isDefault: true }, jar: "alice", capture: "format" },
+          body: { name: "Custom Format", schema: { type: "object" }, isDefault: true }, as: "alice", capture: "format" },
         { id: "F5", m: "GET", path: "/formats", name: "Confirm only one default survives",
           desc: "A partial unique index enforces this in the database rather than in application code, so a concurrent request cannot produce two defaults.",
-          expect: "1", check: "Exactly one format has isDefault true", jar: "alice", kind: "count" },
+          expect: "1", check: "Exactly one format has isDefault true", as: "alice", kind: "count" },
         { id: "F6", m: "GET", path: "/formats/{formatId}", name: "Read a format by id",
-          expect: "200", check: "Returns schema and fieldMapping", jar: "alice" },
+          expect: "200", check: "Returns schema and fieldMapping", as: "alice" },
         { id: "F7", m: "PATCH", path: "/formats/{formatId}", name: "Rename a format",
           expect: "200", check: "Name updated",
-          body: { name: "Renamed" }, jar: "alice" },
+          body: { name: "Renamed" }, as: "alice" },
         { id: "F8", m: "DELETE", path: "/formats/{formatId}", name: "Delete a format",
-          expect: "200", check: "deleted: true", jar: "alice" }
+          expect: "200", check: "deleted: true", as: "alice" }
       ]
     },
     {
@@ -653,9 +671,9 @@
         { id: "K1", m: "POST", path: "/api-keys", name: "Create a key and return the plaintext once",
           desc: "This is the only moment the key is ever visible. It cannot be recovered afterwards — a lost key must be revoked and replaced.",
           expect: "201", check: "Response includes key plus a warning; prefix stored for display",
-          body: { name: "CI pipeline" }, jar: "alice", capture: "apikey" },
+          body: { name: "CI pipeline" }, as: "alice", capture: "apikey" },
         { id: "K2", m: "GET", path: "/api-keys", name: "Never expose key material when listing",
-          expect: "0", check: "No entry in the list contains a key field", jar: "alice", kind: "count" },
+          expect: "0", check: "No entry in the list contains a key field", as: "alice", kind: "count" },
         { id: "K3", m: "POST", path: "/invoices", name: "Authenticate with a bearer API key",
           expect: "201", check: "Invoice created without any session cookie",
           body: { currency: "USD", total: 42, invoiceNumber: "VIA-KEY" }, auth: "bearer" },
@@ -669,13 +687,13 @@
         { id: "K6", m: "POST", path: "/api-keys", name: "Stop an API key from minting another API key",
           desc: "The privilege boundary. If a key could create keys, revoking a leaked one would not contain the breach because the attacker would already have spares.",
           expect: "401", check: "Key-management routes accept only a session",
-          body: { name: "escalate" }, auth: "bearer" },
+          body: { name: "escalate" }, auth: "bearer", anon: true },
         { id: "K7", m: "POST", path: "/invoices", name: "Reject a forged key",
           expect: "401", check: "Invalid or revoked API key",
           body: { currency: "USD", total: 1 }, auth: "fake" },
         { id: "K8", m: "DELETE", path: "/api-keys/{apiKeyId}", name: "Revoke a key",
           desc: "Sets revoked_at rather than deleting, so the audit trail of what the key did survives.",
-          expect: "200", check: "Returns the revocation timestamp", jar: "alice" },
+          expect: "200", check: "Returns the revocation timestamp", as: "alice" },
         { id: "K9", m: "POST", path: "/invoices", name: "Reject the revoked key immediately",
           desc: "No expiry window to wait out — this is the reason api_keys is a table rather than a signed token.",
           expect: "401", check: "Invalid or revoked API key",
@@ -688,27 +706,27 @@
       cases: [
         { id: "X0", m: "POST", path: "/auth/signup", name: "Register the second account",
           expect: "201", check: "Mallory gets her own session",
-          body: { email: "{email2}", password: "{pw}" }, jar: "mallory" },
+          body: { email: "{email2}", password: "{pw}" }, as: "mallory" },
         { id: "X1", m: "GET", path: "/invoices/{invoiceId}", name: "Read another user's invoice",
-          expect: "404", check: "Invoice not found — never 403", jar: "mallory" },
+          expect: "404", check: "Invoice not found — never 403", as: "mallory" },
         { id: "X2", m: "PATCH", path: "/invoices/{invoiceId}", name: "Update another user's invoice",
           expect: "404", check: "Invoice not found; nothing written",
-          body: { total: 1 }, jar: "mallory" },
+          body: { total: 1 }, as: "mallory" },
         { id: "X3", m: "DELETE", path: "/invoices/{invoiceId}", name: "Delete another user's invoice",
-          expect: "404", check: "Invoice not found; row untouched", jar: "mallory" },
+          expect: "404", check: "Invoice not found; row untouched", as: "mallory" },
         { id: "X4", m: "GET", path: "/vendors/{vendorId}", name: "Read another user's vendor",
-          expect: "404", check: "Vendor not found", jar: "mallory" },
+          expect: "404", check: "Vendor not found", as: "mallory" },
         { id: "X5", m: "POST", path: "/invoices", name: "Attach another user's vendor to your own invoice",
           desc: "The indirect path. Ownership is verified on the referenced vendor too, not only on the row being written.",
           expect: "404", check: "Vendor not found",
-          body: { vendorId: "{vendorId}", currency: "USD", total: 1 }, jar: "mallory" },
+          body: { vendorId: "{vendorId}", currency: "USD", total: 1 }, as: "mallory" },
         { id: "X6", m: "GET", path: "/invoices", name: "Confirm listings never leak across accounts",
-          expect: "0", check: "Mallory's invoice total is 0", jar: "mallory", kind: "count" },
+          expect: "0", check: "Mallory's invoice total is 0", as: "mallory", kind: "count" },
         { id: "X7", m: "GET", path: "/vendors", name: "Confirm vendor listings are scoped too",
-          expect: "0", check: "Mallory's vendor total is 0", jar: "mallory", kind: "count" },
+          expect: "0", check: "Mallory's vendor total is 0", as: "mallory", kind: "count" },
         { id: "X8", m: "GET", path: "/invoices/{invoiceId}", name: "Verify the victim's data is unchanged",
           desc: "Runs as Alice after every attack above. If any write had leaked through, this is where it would show.",
-          expect: "200", check: "invoiceNumber is still INV-2026-001", jar: "alice" }
+          expect: "200", check: "invoiceNumber is still INV-2026-001", as: "alice" }
       ]
     },
     {
@@ -720,7 +738,7 @@
           expect: "400", check: "Malformed JSON in request body", raw: "{not valid json" },
           { id: "E2", m: "POST", path: "/auth/logout-all", name: "Revoke every session for the account",
           desc: "Marks all refresh tokens revoked, so other devices lose access at their next refresh.",
-          expect: "200", check: "success: true", jar: "alice" }
+          expect: "200", check: "success: true", as: "alice" }
       ]
     }
   ];
@@ -736,7 +754,7 @@
 
   const curlFor = (c, base) => {
     const parts = [`curl -i -X ${c.m === "GET" ? "GET" : c.m} '${base}${c.path}'`];
-    if (c.jar) parts.push(`  -b cookies-${c.jar}.txt -c cookies-${c.jar}.txt`);
+    if (c.as) parts.push(`  -b cookies-${c.as}.txt -c cookies-${c.as}.txt`);
     if (c.auth === "bearer") parts.push(`  -H 'Authorization: Bearer <API_KEY>'`);
     if (c.auth === "header") parts.push(`  -H 'X-API-Key: <API_KEY>'`);
     if (c.auth === "fake") parts.push(`  -H 'Authorization: Bearer discus_sk_totallyfake'`);
@@ -869,13 +887,35 @@
 
           const headers = {};
           if (c.body || c.raw) headers["Content-Type"] = "application/json";
+
           if (c.auth === "bearer") headers["Authorization"] = `Bearer ${vars.apiKey ?? ""}`;
           if (c.auth === "header") headers["X-API-Key"] = vars.apiKey ?? "";
           if (c.auth === "fake") headers["Authorization"] = "Bearer discus_sk_totallyfake";
+          if (c.auth === "fakejwt") headers["Authorization"] = "Bearer not.a.jwt";
+
+          /**
+           * The session is an httpOnly cookie, which JavaScript cannot read —
+           * correctly, since that is what protects it from XSS. A browser
+           * therefore has exactly one session per origin, so the suite logs
+           * in as whichever persona the next cases need (`as`) and sends the
+           * jar only when the case wants an authenticated call.
+           */
+          if (c.as && c.as !== vars.currentUser) {
+            await fetch(base + "/auth/login", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: c.as === "alice" ? vars.email : vars.email2,
+                password: pw
+              })
+            });
+            vars.currentUser = c.as;
+          }
 
           const res = await fetch(base + fill(c.path), {
             method: c.m === "GET" ? "GET" : c.m,
-            credentials: "include",
+            credentials: c.anon ? "omit" : "include",
             headers,
             body: c.raw ? c.raw : c.body ? JSON.stringify(fillDeep(c.body)) : undefined
           });
@@ -895,6 +935,9 @@
           if (c.capture === "apikey" && d?.key) { vars.apiKey = d.key; vars.apiKeyId = d.id; }
           if (c.id === "V1" && d?.id) vars.vendorId = d.id;
           if (c.id === "A10") vars.rotatedChanged = res.ok;
+          // A signup or login response replaces the jar's session.
+          if (c.id === "A1" || c.id === "A9") vars.currentUser = "alice";
+          if (c.id === "X0") vars.currentUser = "mallory";
 
           let ok, got;
           if (c.kind === "count") {
