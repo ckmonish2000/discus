@@ -273,6 +273,30 @@ describe("regressions", () => {
     const [orphan] = await db.select().from(users).where(eq(users.email, email));
     expect(orphan).toBeUndefined();
   });
+
+  test("a failed document can be retried, and another user's cannot", async () => {
+    const created = await asUser(alice, "/documents", {
+      method: "POST",
+      body: JSON.stringify({
+        bucketName: "invoices",
+        objectPath: `invoices/${alice.userId}/${unique()}.pdf`,
+        mimeType: "application/pdf",
+      }),
+    });
+    const docId = (await json(created)).data.id;
+
+    const retried = await asUser(alice, `/documents/${docId}/retry`, {
+      method: "POST",
+    });
+    expect(retried.status).toBe(200);
+    expect((await json(retried)).data.status).toBe("pending");
+
+    // Ownership is checked the same way as every other route: 404, not 403.
+    const asMallory = await asUser(mallory, `/documents/${docId}/retry`, {
+      method: "POST",
+    });
+    expect(asMallory.status).toBe(404);
+  });
 });
 
 describe("api keys", () => {

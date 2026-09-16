@@ -38,6 +38,12 @@ router.post("/", validate("json", createDocumentSchema), async (c) => {
   return c.json(ok(serializeDocument(document)), created ? 201 : 200);
 });
 
+/** POST /documents/:id/retry — re-run extraction after a failure. */
+router.post("/:id/retry", async (c) => {
+  const doc = await documentsService.retry(c.req.param("id"), getUserId(c));
+  return c.json(ok(serializeDocument(doc)));
+});
+
 /** DELETE /documents/:id — invoices survive via ON DELETE SET NULL. */
 router.delete("/:id", async (c) => {
   await documentsService.remove(c.req.param("id"), getUserId(c));

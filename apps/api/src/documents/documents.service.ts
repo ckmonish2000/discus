@@ -1,4 +1,7 @@
 import { AppError, type CreateDocumentDto, type ListDocumentsDto } from "common";
+import { db, documents } from "drizzle";
+import { and, eq } from "drizzle-orm";
+import { documentQueue } from "../queues";
 import { requireOwned } from "../shared/crud.helpers";
 import { documentsRepository } from "./documents.repository";
 
@@ -50,5 +53,34 @@ export const documentsService = {
       "Document",
       "deleteDocument",
     );
+  },
+
+  /**
+   * Re-enqueues a document for extraction. Used after a failure, so it clears
+   * the previous error rather than leaving a stale message on a pending row.
+   */
+  async retry(id: string, userId: string) {
+    const doc = await documentsService.getById(id, userId);
+
+    const [updated] = await db
+      .update(documents)
+      .set({
+        status: "pending",
+        errorMessage: null,
+        processedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+      .returning();
+
+    await documentQueue.add("process_document", {
+      documentId: doc.id,
+      userId,
+      bucketName: doc.bucketName,
+      objectPath: doc.objectPath,
+      mimeType: doc.mimeType,
+    });
+
+    return updated!;
   },
 };
