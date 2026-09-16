@@ -63,6 +63,26 @@ export const persistExtraction = async (
   const { userId, documentId, mapped, confidence } = input;
 
   return db.transaction(async (tx) => {
+    /**
+     * Extraction can run more than once for one document — a user pressing
+     * Retry, or BullMQ retrying after a failure that happened *after* this
+     * transaction committed. Inserting unconditionally would book the same
+     * payable twice, with no dedup and no way for the user to merge them.
+     *
+     * Only extraction-sourced invoices are superseded: an invoice the user
+     * typed by hand, or one created through the API, is theirs to keep even
+     * if it references the same document. Line items cascade.
+     */
+    await tx
+      .delete(invoices)
+      .where(
+        and(
+          eq(invoices.documentId, documentId),
+          eq(invoices.userId, userId),
+          eq(invoices.source, "extraction"),
+        ),
+      );
+
     const vendorId = await upsertVendor(tx, userId, mapped.vendor);
 
     const [invoice] = await tx

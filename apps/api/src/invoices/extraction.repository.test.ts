@@ -119,6 +119,82 @@ describe("persistExtraction", () => {
     expect(inv!.confidence).toBeCloseTo(0.4, 5);
   });
 
+  test("re-extracting the same document replaces, rather than duplicates", async () => {
+    // A user pressing Retry, or BullMQ retrying after a post-commit failure,
+    // would otherwise book the same payable twice — with no dedup and no way
+    // for the user to merge them.
+    const [doc] = await db
+      .insert(documents)
+      .values({
+        userId,
+        bucketName: "invoices",
+        objectPath: `invoices/${userId}/${Math.random().toString(36).slice(2)}.pdf`,
+        mimeType: "application/pdf",
+      })
+      .returning();
+
+    await persistExtraction({
+      userId,
+      documentId: doc!.id,
+      mapped: mapped(),
+      confidence: 1,
+    });
+    const second = await persistExtraction({
+      userId,
+      documentId: doc!.id,
+      mapped: mapped(),
+      confidence: 1,
+    });
+
+    const rows = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.documentId, doc!.id));
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.id).toBe(second.invoiceId);
+  });
+
+  test("re-extraction leaves a manually entered invoice alone", async () => {
+    // Only extraction-sourced rows are superseded. An invoice the user typed
+    // by hand is theirs to keep, even against the same document.
+    const [doc] = await db
+      .insert(documents)
+      .values({
+        userId,
+        bucketName: "invoices",
+        objectPath: `invoices/${userId}/${Math.random().toString(36).slice(2)}.pdf`,
+        mimeType: "application/pdf",
+      })
+      .returning();
+
+    const [manual] = await db
+      .insert(invoices)
+      .values({
+        userId,
+        documentId: doc!.id,
+        currency: "GBP",
+        totalMinor: 999n,
+        source: "dashboard",
+      })
+      .returning();
+
+    await persistExtraction({
+      userId,
+      documentId: doc!.id,
+      mapped: mapped(),
+      confidence: 1,
+    });
+
+    const [survivor] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, manual!.id));
+
+    expect(survivor).toBeDefined();
+    expect(survivor!.totalMinor).toBe(999n);
+  });
+
   test("persists with a null vendor when no vendor name was extracted", async () => {
     const m = mapped();
     m.vendor.name = null;
