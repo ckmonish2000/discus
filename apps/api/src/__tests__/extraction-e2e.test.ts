@@ -1,5 +1,5 @@
 import { test, expect, describe, beforeAll, afterAll } from "bun:test";
-import { db, users, documents, invoices, lineItems } from "drizzle";
+import { db, users, documents, invoices, lineItems, vendors } from "drizzle";
 import { eq } from "drizzle-orm";
 import { applyMapping } from "common";
 import { persistExtraction } from "../invoices/extraction.repository";
@@ -79,7 +79,16 @@ describe("extraction end to end", () => {
     expect(inv!.currency).toBe("GBP");
     expect(inv!.needsReview).toBe(false);
     expect(inv!.data).toEqual({ costCentre: "ENG-42" });
-    expect(vendorId).not.toBeNull();
+    // Query the vendor row itself rather than trusting the returned id — the
+    // point of this test is that all three tables actually received rows.
+    const [vendor] = await db
+      .select()
+      .from(vendors)
+      .where(eq(vendors.id, vendorId!));
+    expect(vendor).toBeDefined();
+    expect(vendor!.name).toBe("Acme Supplies Ltd");
+    expect(vendor!.taxId).toBe("GB123456789");
+    expect(inv!.vendorId).toBe(vendor!.id);
 
     const lines = await db
       .select()
