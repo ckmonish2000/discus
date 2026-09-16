@@ -38,13 +38,25 @@ router.post("/webhook", async (c) => {
       return c.json({ success: true, data: { job: null } });
     }
 
-    const { document } = await documentsService.register(owner.userId, {
-      bucketName,
-      objectPath,
-      mimeType: fileType,
-      originalFilename: owner.filename,
-      sizeBytes: null,
-    });
+    const { document, created } = await documentsService.register(
+      owner.userId,
+      {
+        bucketName,
+        objectPath,
+        mimeType: fileType,
+        originalFilename: owner.filename,
+        sizeBytes: null,
+      },
+    );
+
+    // MinIO can deliver the same event more than once. The unique index on
+    // (bucket_name, object_path) already makes the document row idempotent;
+    // enqueuing regardless would still run extraction twice and write a
+    // second invoice for one upload — a double-booked payable.
+    if (!created) {
+      console.warn("Ignoring duplicate webhook delivery", { objectPath });
+      return c.json({ success: true, data: { job: null, duplicate: true } });
+    }
 
     const job = await documentQueue.add("process_document", {
       documentId: document.id,
