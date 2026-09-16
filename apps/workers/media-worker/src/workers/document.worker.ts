@@ -4,7 +4,7 @@ import { createWorker, QueueNames, type DocumentJobData } from "queues";
 import { db, documents, invoiceFormats } from "drizzle";
 import { and, eq } from "drizzle-orm";
 import { applyMapping, rewriteMinioUrl, type MappedInvoice } from "common";
-import AgentService, { extractInvoice } from "agents";
+import AgentService, { extractInvoice, summariseDocument } from "agents";
 import { persistExtraction } from "../../../../api/src/invoices/extraction.repository";
 import { minioService } from "../services/minio.service";
 import { extractText } from "../services/text-extraction.service";
@@ -113,7 +113,14 @@ const documentWorker = await createWorker<DocumentJobData>(
 
       await db
         .update(documents)
-        .set({ ocrText: text, updatedAt: new Date() })
+        .set({
+          ocrText: text,
+          // Feeds the documents list and the full-text index. Returns null
+          // rather than throwing when it fails or no key is configured, so a
+          // missing summary never costs a successful extraction.
+          summary: await summariseDocument(text),
+          updatedAt: new Date(),
+        })
         .where(eq(documents.id, documentId));
 
       console.log("[document] extracted", {

@@ -1,6 +1,7 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { env, AppError } from "common";
 import EXTRACTION_PROMPT from "../prompts/extraction.prompt";
+import SUMMARY_PROMPT from "../prompts/summary.prompt";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
@@ -78,5 +79,46 @@ export const extractInvoice = async (
       error,
       { markdownLength: markdown.length },
     );
+  }
+};
+
+/**
+ * One-sentence factual summary for the documents list and the full-text
+ * index. Failure is non-fatal: a missing summary degrades search, while a
+ * thrown error here would fail an otherwise successful extraction.
+ */
+export const summariseDocument = async (
+  markdown: string,
+  opts: { timeoutMs?: number } = {},
+): Promise<string | null> => {
+  if (!env.llm.GOOGLE_API_KEY) return null;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    const model = new ChatGoogleGenerativeAI({
+      apiKey: env.llm.GOOGLE_API_KEY,
+      model: env.llm.GEMINI_MODEL,
+      temperature: 0,
+      maxRetries: 0,
+    });
+
+    const result = await Promise.race([
+      model.invoke(`${SUMMARY_PROMPT}\n${markdown}`),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("Summarisation timed out")),
+          opts.timeoutMs ?? 30_000,
+        );
+      }),
+    ]).finally(() => {
+      if (timer) clearTimeout(timer);
+    });
+
+    const text = String((result as { content?: unknown }).content ?? "").trim();
+    return text ? text.slice(0, 500) : null;
+  } catch (error) {
+    console.warn("Summarisation failed; continuing without one", error);
+    return null;
   }
 };
