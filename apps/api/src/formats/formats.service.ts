@@ -2,6 +2,7 @@ import { db, type Executor } from "drizzle";
 import { AppError, type CreateFormatDto, type UpdateFormatDto } from "common";
 import { requireOwned } from "../shared/crud.helpers";
 import { formatsRepository } from "./formats.repository";
+export { resolveExtractionFormat } from "./resolve-format";
 import {
   DEFAULT_INVOICE_SCHEMA,
   DEFAULT_FIELD_MAPPING,

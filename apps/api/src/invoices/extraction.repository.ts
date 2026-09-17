@@ -52,6 +52,107 @@ const upsertVendor = async (
 };
 
 /**
+ * Removes the previous extraction for this document, if any.
+ *
+ * Deliberately a delete rather than a "skip if one exists" check. Retry
+ * exists precisely because the previous result was wrong — skipping the
+ * insert would make the button do nothing and leave the bad invoice in
+ * place. Re-extraction also produces a different number of line items each
+ * time, which a skip has no way to reconcile.
+ *
+ * Only extraction-sourced rows are superseded: an invoice the user typed by
+ * hand, or one created through the API, is theirs to keep even if it
+ * references the same document. Line items cascade.
+ *
+ * Safe because the caller runs it inside a transaction — if the re-insert
+ * fails, the delete rolls back with it and the old invoice survives.
+ */
+const supersedePreviousExtraction = (
+  ex: Executor,
+  userId: string,
+  documentId: string,
+) =>
+  ex
+    .delete(invoices)
+    .where(
+      and(
+        eq(invoices.documentId, documentId),
+        eq(invoices.userId, userId),
+        eq(invoices.source, "extraction"),
+      ),
+    );
+
+/** Inserts the invoice header and returns its id. */
+const insertInvoice = async (
+  ex: Executor,
+  userId: string,
+  documentId: string,
+  vendorId: string | null,
+  mapped: MappedInvoice,
+  confidence: number,
+): Promise<string> => {
+  const [invoice] = await ex
+    .insert(invoices)
+    .values({
+      userId,
+      documentId,
+      vendorId,
+      invoiceNumber: mapped.invoice.invoiceNumber,
+      poNumber: mapped.invoice.poNumber,
+      issueDate: mapped.invoice.issueDate,
+      dueDate: mapped.invoice.dueDate,
+      currency: mapped.invoice.currency,
+      subtotalMinor: mapped.invoice.subtotalMinor,
+      taxTotalMinor: mapped.invoice.taxTotalMinor,
+      discountMinor: mapped.invoice.discountMinor,
+      totalMinor: mapped.invoice.totalMinor,
+      paymentTerms: mapped.invoice.paymentTerms,
+      data: mapped.data,
+      source: "extraction",
+      confidence,
+      // Anything the mapping engine could not place is a human's call.
+      needsReview: mapped.issues.length > 0,
+    })
+    .returning({ id: invoices.id });
+
+  if (!invoice) throw new Error("Failed to insert extracted invoice");
+  return invoice.id;
+};
+
+/** Inserts line items in document order. No-op when there are none. */
+const insertLineItems = async (
+  ex: Executor,
+  invoiceId: string,
+  items: MappedInvoice["lineItems"],
+) => {
+  if (!items.length) return;
+
+  await ex.insert(lineItems).values(
+    items.map((item) => ({
+      invoiceId,
+      position: item.position,
+      description: item.description,
+      quantity: item.quantity,
+      unitPriceMinor: item.unitPriceMinor,
+      lineTotalMinor: item.lineTotalMinor,
+      taxRate: item.taxRate,
+    })),
+  );
+};
+
+/** Marks the document done and clears any error left by a previous attempt. */
+const markDocumentCompleted = (ex: Executor, documentId: string) =>
+  ex
+    .update(documents)
+    .set({
+      status: "completed",
+      processedAt: new Date(),
+      errorMessage: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(documents.id, documentId));
+
+/**
  * Writes an extraction result across three tables in one transaction.
  *
  * All-or-nothing: an invoice whose line items failed to insert would be a
@@ -63,77 +164,21 @@ export const persistExtraction = async (
   const { userId, documentId, mapped, confidence } = input;
 
   return db.transaction(async (tx) => {
-    /**
-     * Extraction can run more than once for one document — a user pressing
-     * Retry, or BullMQ retrying after a failure that happened *after* this
-     * transaction committed. Inserting unconditionally would book the same
-     * payable twice, with no dedup and no way for the user to merge them.
-     *
-     * Only extraction-sourced invoices are superseded: an invoice the user
-     * typed by hand, or one created through the API, is theirs to keep even
-     * if it references the same document. Line items cascade.
-     */
-    await tx
-      .delete(invoices)
-      .where(
-        and(
-          eq(invoices.documentId, documentId),
-          eq(invoices.userId, userId),
-          eq(invoices.source, "extraction"),
-        ),
-      );
+    await supersedePreviousExtraction(tx, userId, documentId);
 
     const vendorId = await upsertVendor(tx, userId, mapped.vendor);
+    const invoiceId = await insertInvoice(
+      tx,
+      userId,
+      documentId,
+      vendorId,
+      mapped,
+      confidence,
+    );
 
-    const [invoice] = await tx
-      .insert(invoices)
-      .values({
-        userId,
-        documentId,
-        vendorId,
-        invoiceNumber: mapped.invoice.invoiceNumber,
-        poNumber: mapped.invoice.poNumber,
-        issueDate: mapped.invoice.issueDate,
-        dueDate: mapped.invoice.dueDate,
-        currency: mapped.invoice.currency,
-        subtotalMinor: mapped.invoice.subtotalMinor,
-        taxTotalMinor: mapped.invoice.taxTotalMinor,
-        discountMinor: mapped.invoice.discountMinor,
-        totalMinor: mapped.invoice.totalMinor,
-        paymentTerms: mapped.invoice.paymentTerms,
-        data: mapped.data,
-        source: "extraction",
-        confidence,
-        needsReview: mapped.issues.length > 0,
-      })
-      .returning({ id: invoices.id });
+    await insertLineItems(tx, invoiceId, mapped.lineItems);
+    await markDocumentCompleted(tx, documentId);
 
-    if (!invoice) throw new Error("Failed to insert extracted invoice");
-
-    if (mapped.lineItems.length) {
-      await tx.insert(lineItems).values(
-        mapped.lineItems.map((item) => ({
-          invoiceId: invoice.id,
-          position: item.position,
-          description: item.description,
-          quantity: item.quantity,
-          unitPriceMinor: item.unitPriceMinor,
-          lineTotalMinor: item.lineTotalMinor,
-          taxRate: item.taxRate,
-        })),
-      );
-    }
-
-    await tx
-      .update(documents)
-      .set({
-        status: "completed",
-        processedAt: new Date(),
-        errorMessage: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(documents.id, documentId));
-
-    return { invoiceId: invoice.id, vendorId };
+    return { invoiceId, vendorId };
   });
 };

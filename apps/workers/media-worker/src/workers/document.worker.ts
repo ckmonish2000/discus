@@ -1,17 +1,14 @@
 import path from "path";
 import fs from "fs";
 import { createWorker, QueueNames, type DocumentJobData } from "queues";
-import { db, documents, invoiceFormats } from "drizzle";
+import { db, documents } from "drizzle";
 import { and, eq } from "drizzle-orm";
 import { applyMapping, rewriteMinioUrl, type MappedInvoice } from "common";
 import AgentService, { extractInvoice, summariseDocument } from "agents";
 import { persistExtraction } from "../../../../api/src/invoices/extraction.repository";
+import { resolveExtractionFormat } from "../../../../api/src/formats/resolve-format";
 import { minioService } from "../services/minio.service";
 import { extractText } from "../services/text-extraction.service";
-import {
-  DEFAULT_INVOICE_SCHEMA,
-  DEFAULT_FIELD_MAPPING,
-} from "../../../../api/src/formats/default-format";
 
 /**
  * Confidence is derived rather than asked for: a model's self-reported score
@@ -83,21 +80,7 @@ const documentWorker = await createWorker<DocumentJobData>(
       console.log(`[document] text via ${source}`, { documentId });
 
       // 2. The user's format, falling back to the built-in template.
-      const [format] = await db
-        .select()
-        .from(invoiceFormats)
-        .where(
-          and(
-            eq(invoiceFormats.userId, userId),
-            eq(invoiceFormats.isDefault, true),
-          ),
-        )
-        .limit(1);
-
-      const schema =
-        format?.schema ??
-        (DEFAULT_INVOICE_SCHEMA as unknown as Record<string, unknown>);
-      const fieldMapping = format?.fieldMapping ?? DEFAULT_FIELD_MAPPING;
+      const { schema, fieldMapping } = await resolveExtractionFormat(userId);
 
       // 3. Extract, then map.
       const extracted = await extractInvoice(text, schema);
