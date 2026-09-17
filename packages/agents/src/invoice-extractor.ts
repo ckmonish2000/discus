@@ -72,12 +72,19 @@ export const extractInvoice = async (
 
     return result as Record<string, unknown>;
   } catch (error) {
+    // The underlying reason goes in the message, not just the cause. This
+    // surfaces in documents.errorMessage and therefore in the dashboard
+    // toast, where "Gemini failed to extract invoice fields" alone gives a
+    // user nothing to act on — a stale model name and a revoked key read
+    // identically.
+    const detail = error instanceof Error ? error.message : String(error);
+
     throw new AppError(
-      "Gemini failed to extract invoice fields",
+      `Gemini failed to extract invoice fields: ${detail}`,
       500,
       "extractInvoice",
       error,
-      { markdownLength: markdown.length },
+      { markdownLength: markdown.length, model: env.llm.GEMINI_MODEL },
     );
   }
 };

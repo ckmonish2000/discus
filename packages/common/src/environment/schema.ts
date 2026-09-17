@@ -21,7 +21,7 @@ export const envSchema = z.object({
     LLM_MODEL: z.string().nonempty(),
     OLLAMA_HOST: z.string().nonempty(),
     GOOGLE_API_KEY: z.string().default(""),
-    GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+    GEMINI_MODEL: z.string().default("gemini-3.6-flash"),
   }),
   api: z.object({
     NODE_ENV: z.enum(["development", "production", "test"]),
