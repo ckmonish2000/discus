@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { Upload, Files, RotateCw, AlertTriangle, Trash2 } from 'lucide-react'
 import { documentsApi, storageApi, type Document } from '@/lib/api'
 import { fileSize, fileName, shortDate } from '@/lib/format'
-import { useAuth } from '@/lib/auth'
 import { PageHeader } from '@/components/layout/shell'
 import { Card } from '@/components/ui/card'
 import { Badge, DOCUMENT_STATUS_TONE } from '@/components/ui/badge'
@@ -11,12 +10,9 @@ import { Button } from '@/components/ui/button'
 import { TableSkeleton, EmptyState, ErrorState } from '@/components/ui/states'
 import { useToast } from '@/components/ui/toast'
 
-const BUCKET = 'invoices'
-
 export function DocumentsPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
-  const { user } = useAuth()
   const fileInput = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -59,13 +55,15 @@ export function DocumentsPage() {
    * Upload goes straight to MinIO with a presigned URL; the storage webhook
    * then registers the document and enqueues extraction. The browser never
    * proxies file bytes through the API.
+   *
+   * Only the filename is sent. The server owns the object path because the
+   * webhook reads ownership out of it — a client-chosen path under
+   * invoices/ could be attributed to another user.
    */
   const upload = async (file: File) => {
-    if (!user) return
     setUploading(true)
     try {
-      const objectPath = `invoices/${user.id}/${Date.now()}-${file.name}`
-      const { url } = await storageApi.getUploadUrl(BUCKET, objectPath)
+      const { url } = await storageApi.getInvoiceUploadUrl(file.name)
 
       const put = await fetch(url, {
         method: 'PUT',

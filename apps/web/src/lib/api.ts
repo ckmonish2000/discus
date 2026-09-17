@@ -226,6 +226,19 @@ export const apiKeysApi = {
 }
 
 export const storageApi = {
+  /**
+   * Invoice uploads have their own endpoint. Only the filename is sent: the
+   * server derives the object path from the session, because the MinIO
+   * webhook treats the `invoices/<userId>/` prefix as proof of ownership.
+   * A client-supplied path there would let anyone forge an upload attributed
+   * to another user, so /storage/object rejects that prefix outright.
+   */
+  getInvoiceUploadUrl: (filename: string) =>
+    request<{ url: string; objectPath: string }>('/storage/invoice-upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ filename }),
+    }),
+
   getUploadUrl: (bucketName: string, objectName: string) =>
     request<{ url: string }>('/storage/object', {
       method: 'POST',

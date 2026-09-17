@@ -11,6 +11,9 @@ import { requireAuth, getUserId } from "../../auth/middleware/auth.middleware";
 
 const router = new Hono();
 
+/** Invoice objects live under the shared bucket; the path carries the owner. */
+const DEFAULT_BUCKET = "discus";
+
 /**
  * POST /object
  * Generate a presigned URL for uploading an object to MinIO.
@@ -63,13 +66,26 @@ router.post(
     const { filename }: InvoiceUploadDto = c.req.valid("json");
     const objectPath = buildInvoiceObjectPath(getUserId(c), filename);
 
-    const url = await minioService.getPresignedUrl({
-      bucketName: "invoices",
+    // The "discus" bucket, not "invoices": buildInvoiceObjectPath already
+    // starts the key with the invoices/ prefix, and the webhook reconstructs
+    // <bucket>/<path> from MinIO's Key field. Uploading into a bucket of the
+    // same name yields invoices/invoices/<userId>/..., which
+    // parseInvoiceObjectPath rejects as malformed — the upload would land in
+    // storage and never be extracted.
+    const presigned = await minioService.getPresignedUrl({
+      bucketName: DEFAULT_BUCKET,
       objectName: objectPath,
       expires: env.minio.EXPIRES_IN,
     });
 
-    return c.json({ success: true, data: { url, objectPath } });
+    // MinIO signs against its internal hostname (minio:9000), which a browser
+    // cannot resolve. The rewrite swaps in MINIO_PUBLIC_URL's host while
+    // preserving the path and signature. /object already did this; this route
+    // did not, so every browser upload here failed to connect.
+    return c.json({
+      success: true,
+      data: { url: rewriteMinioUrl(presigned), objectPath },
+    });
   },
 );
 

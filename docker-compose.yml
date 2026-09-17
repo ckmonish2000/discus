@@ -1,23 +1,4 @@
 services:
-  # Runs to completion before api and worker start, so the schema is always
-  # current by the time anything queries it. A one-shot service rather than
-  # an api entrypoint step: it runs exactly once no matter how many replicas
-  # start, and a failed migration stops the stack loudly instead of leaving
-  # each service to race the same ALTER.
-  migrate:
-    build:
-      context: .
-      dockerfile: infra/docker/migrate.dockerfile
-    env_file:
-      - .env.local
-    environment:
-      # Tells drizzle.config.ts to use the compose-network address rather
-      # than the host's published port.
-      IN_CONTAINER: "true"
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
 
   api:
     build:
@@ -39,8 +20,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
 
   worker:
     build:
@@ -60,8 +39,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     deploy:
       resources:
         limits:
