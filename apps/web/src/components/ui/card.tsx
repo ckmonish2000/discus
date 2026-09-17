@@ -1,36 +1,42 @@
-import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('rounded-lg border bg-background p-6 shadow-sm', className)}
-      {...props}
-    />
+export function Card({
+  className,
+  children,
+}: {
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section
+      className={cn(
+        'rounded-lg border border-line bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.05)]',
+        className,
+      )}
+    >
+      {children}
+    </section>
   )
-)
-Card.displayName = 'Card'
+}
 
-const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 pb-4', className)} {...props} />
+export function CardHeader({
+  title,
+  subtitle,
+  action,
+}: {
+  title: React.ReactNode
+  subtitle?: React.ReactNode
+  action?: React.ReactNode
+}) {
+  return (
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+      <div>
+        <h2 className="text-sm font-semibold text-ink">{title}</h2>
+        {subtitle ? (
+          <p className="mt-0.5 text-xs text-ink-muted">{subtitle}</p>
+        ) : null}
+      </div>
+      {action}
+    </header>
   )
-)
-CardHeader.displayName = 'CardHeader'
-
-const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-lg font-semibold leading-none', className)} {...props} />
-  )
-)
-CardTitle.displayName = 'CardTitle'
-
-const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('pt-0', className)} {...props} />
-  )
-)
-CardContent.displayName = 'CardContent'
-
-export { Card, CardHeader, CardTitle, CardContent }
+}
