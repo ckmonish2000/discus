@@ -1,0 +1,38 @@
+# Host node_modules must never enter the image: bun install runs inside the
+# container, and copying the host tree in both bloats the build context and
+# risks shipping darwin-arm64 binaries into a linux image.
+node_modules
+**/node_modules
+
+dist
+out
+*.tsbuildinfo
+coverage
+*.lcov
+
+.git
+.gitignore
+
+# Secrets arrive via env_file at run time, not baked into a layer.
+.env
+.env.local
+
+.DS_Store
+.idea
+.vscode
+.claude
+.gstack
+.superpowers
+claudedocs
+docs
+
+logs
+*.log
+
+input
+output
+assets
+apps/workers/media-worker/src/assets
+
+__pycache__
+.venv

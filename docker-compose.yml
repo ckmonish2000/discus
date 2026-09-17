@@ -1,4 +1,24 @@
 services:
+  # Runs to completion before api and worker start, so the schema is always
+  # current by the time anything queries it. A one-shot service rather than
+  # an api entrypoint step: it runs exactly once no matter how many replicas
+  # start, and a failed migration stops the stack loudly instead of leaving
+  # each service to race the same ALTER.
+  migrate:
+    build:
+      context: .
+      dockerfile: infra/docker/migrate.dockerfile
+    env_file:
+      - .env.local
+    environment:
+      # Tells drizzle.config.ts to use the compose-network address rather
+      # than the host's published port.
+      IN_CONTAINER: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build:
       context: .
@@ -11,6 +31,11 @@ services:
       - .env.local
     volumes:
       - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     build:
@@ -25,10 +50,31 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
           cpus: "4.0"
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.dockerfile
+    ports:
+      - 5173:5173
+    env_file:
+      - .env.local
+    environment:
+      # Resolved by the browser, not by this container, so it is the host's
+      # published API port rather than the compose service name.
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    depends_on:
+      - api
 
   minio:
     image: minio/minio

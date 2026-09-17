@@ -15,13 +15,13 @@
   "dependencies": {
     "@firecrawl/anydoc": "^0.2.4",
     "@types/fluent-ffmpeg": "^2.1.28",
-    "agents": "workspaces/*",
+    "agents": "workspace:*",
     "bullmq": "^5.66.4",
-    "common": "workspaces/*",
-    "drizzle": "workspaces/*",
+    "common": "workspace:*",
+    "drizzle": "workspace:*",
     "fluent-ffmpeg": "^2.1.3",
     "ioredis": "^5.9.1",
-    "minio": "workspaces/*",
-    "queues": "workspaces/*"
+    "minio": "workspace:*",
+    "queues": "workspace:*"
   }
 }
