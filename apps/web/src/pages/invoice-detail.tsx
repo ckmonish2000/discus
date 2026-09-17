@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft, AlertTriangle } from 'lucide-react'
@@ -7,6 +8,7 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Badge, INVOICE_STATUS_TONE } from '@/components/ui/badge'
 import { Skeleton, ErrorState } from '@/components/ui/states'
 import { useToast } from '@/components/ui/toast'
+import { DocumentPreview } from '@/components/document-preview'
 
 const STATUSES: InvoiceStatus[] = ['draft', 'pending', 'approved', 'paid', 'void']
 
@@ -19,6 +21,8 @@ export function InvoiceDetailPage() {
     queryKey: ['invoice', invoiceId],
     queryFn: () => invoicesApi.get(invoiceId),
   })
+
+  const [previewing, setPreviewing] = useState(false)
 
   const updateStatus = useMutation({
     mutationFn: (status: InvoiceStatus) => invoicesApi.update(invoiceId, { status }),
@@ -180,12 +184,14 @@ export function InvoiceDetailPage() {
                 <div className="flex items-baseline justify-between gap-4 px-5 py-2.5">
                   <dt className="text-ink-muted">Source document</dt>
                   <dd>
-                    <Link
-                      to="/documents"
+                    {/* Opens the original in place. Linking to /documents made
+                        the reader hunt for the row they just came from. */}
+                    <button
+                      onClick={() => setPreviewing(true)}
                       className="font-medium text-brand hover:underline"
                     >
                       View
-                    </Link>
+                    </button>
                   </dd>
                 </div>
               ) : null}
@@ -200,15 +206,103 @@ export function InvoiceDetailPage() {
               />
               <dl className="divide-y divide-line text-sm">
                 {extra.map(([key, value]) => (
-                  <Row key={key} label={key} value={String(value)} />
+                  <CustomField key={key} label={key} value={value} />
                 ))}
               </dl>
             </Card>
           ) : null}
         </div>
       </div>
+
+      {previewing && data.documentId ? (
+        <DocumentPreview
+          documentId={data.documentId}
+          title={data.invoiceNumber ?? 'Source document'}
+          onClose={() => setPreviewing(false)}
+        />
+      ) : null}
     </>
   )
+}
+
+/**
+ * Turns a JSON key into something readable: `buyer` -> `Buyer`,
+ * `costCentre` -> `Cost centre`, `tax_id` -> `Tax id`.
+ */
+const humanise = (key: string) =>
+  key
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/^./, (c) => c.toUpperCase())
+
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v)
+
+/** Renders a leaf value. Objects never reach here. */
+const scalar = (v: unknown): string => {
+  if (v === null || v === undefined || v === '') return '—'
+  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  // Gemini sometimes fills an absent field with the string "null".
+  if (v === 'null') return '—'
+  return String(v)
+}
+
+/**
+ * A custom field holds whatever the user's format defined, so the value may
+ * be a scalar, a nested object (`buyer`), or an array. Rendering it with
+ * String() printed "[object Object]" and discarded real extracted data —
+ * the buyer's name, address and tax id were all in there.
+ */
+function CustomField({ label, value }: { label: string; value: unknown }) {
+  if (isPlainObject(value)) {
+    const entries = Object.entries(value).filter(
+      ([, v]) => v !== null && v !== undefined && v !== '' && v !== 'null',
+    )
+
+    if (entries.length === 0) return <Row label={humanise(label)} value="—" />
+
+    return (
+      <div className="px-5 py-2.5">
+        <dt className="mb-1.5 text-ink-muted">{humanise(label)}</dt>
+        <dd className="space-y-1">
+          {entries.map(([k, v]) => (
+            <div
+              key={k}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 pl-3"
+            >
+              <span className="text-xs text-ink-subtle">{humanise(k)}</span>
+              <span className="min-w-0 font-medium break-words">
+                {isPlainObject(v) || Array.isArray(v)
+                  ? JSON.stringify(v)
+                  : scalar(v)}
+              </span>
+            </div>
+          ))}
+        </dd>
+      </div>
+    )
+  }
+
+  if (Array.isArray(value)) {
+    return (
+      <div className="px-5 py-2.5">
+        <dt className="mb-1.5 text-ink-muted">{humanise(label)}</dt>
+        <dd className="space-y-1">
+          {value.length === 0 ? (
+            <span className="font-medium">—</span>
+          ) : (
+            value.map((v, i) => (
+              <div key={i} className="pl-3 font-medium break-words">
+                {isPlainObject(v) ? JSON.stringify(v) : scalar(v)}
+              </div>
+            ))
+          )}
+        </dd>
+      </div>
+    )
+  }
+
+  return <Row label={humanise(label)} value={scalar(value)} />
 }
 
 function Row({ label, value }: { label: string; value: string }) {

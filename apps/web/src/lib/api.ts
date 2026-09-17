@@ -84,6 +84,8 @@ export type Invoice = {
   needsReview: boolean
   data: Record<string, unknown>
   createdAt: string
+  /** Joined from the vendors table by the list endpoint. */
+  vendorName?: string | null
 }
 
 export type LineItem = {
@@ -186,6 +188,9 @@ export const documentsApi = {
     }),
   retry: (id: string) =>
     request<Document>(`/documents/${id}/retry`, { method: 'POST' }),
+  /** Short-lived URL for the original file; ownership is checked server-side. */
+  preview: (id: string) =>
+    request<{ url: string; mimeType: string }>(`/documents/${id}/preview`),
   remove: (id: string) =>
     request<{ deleted: boolean }>(`/documents/${id}`, { method: 'DELETE' }),
 }
