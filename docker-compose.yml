@@ -31,6 +31,11 @@ services:
       - .env.local
     volumes:
       - .:/app
+      # node_modules stays the image's own. The bind mount above would
+      # otherwise overlay the host's macOS tree, where native packages like
+      # @firecrawl/anydoc resolved to darwin-arm64 binaries this container
+      # cannot load.
+      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -45,6 +50,11 @@ services:
       - .env.local
     volumes:
       - .:/app
+      # node_modules stays the image's own. The bind mount above would
+      # otherwise overlay the host's macOS tree, where native packages like
+      # @firecrawl/anydoc resolved to darwin-arm64 binaries this container
+      # cannot load.
+      - /app/node_modules
     depends_on:
       redis:
         condition: service_healthy
