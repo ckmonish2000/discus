@@ -1,4 +1,4 @@
-import { db, invoices, type Executor, type Invoice } from "drizzle";
+import { db, invoices, vendors, type Executor, type Invoice } from "drizzle";
 import { eq, and, desc, sql, gte, lte, type SQL } from "drizzle-orm";
 import type { ListInvoicesDto } from "common";
 
@@ -54,10 +54,18 @@ export const invoicesRepository = {
   async list(userId: string, q: ListInvoicesDto, ex: Executor = db) {
     const where = listFilters(userId, q);
 
+    // Left join rather than a second round trip: the list renders the vendor
+    // name on every row, and fetching it per invoice would be N+1. Left, not
+    // inner, because vendorId is nullable — an extraction that could not
+    // identify a seller still has an invoice worth listing.
     const [items, [counted]] = await Promise.all([
       ex
-        .select()
+        .select({
+          invoice: invoices,
+          vendorName: vendors.name,
+        })
         .from(invoices)
+        .leftJoin(vendors, eq(invoices.vendorId, vendors.id))
         .where(where)
         .orderBy(desc(invoices.issueDate), desc(invoices.createdAt))
         .limit(q.limit)
@@ -68,7 +76,10 @@ export const invoicesRepository = {
         .where(where),
     ]);
 
-    return { items, total: counted?.count ?? 0 };
+    return {
+      items: items.map((r) => ({ ...r.invoice, vendorName: r.vendorName })),
+      total: counted?.count ?? 0,
+    };
   },
 
   async findById(id: string, userId: string, ex: Executor = db) {

@@ -10,7 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "common": "workspaces/*",
+    "common": "workspace:*",
     "bullmq": "^5.66.4",
     "ioredis": "^5.9.1"
   }

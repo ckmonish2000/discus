@@ -614,7 +614,14 @@ bunx serve docs -l 3000    # this page on :3000</pre>
           desc: "Invoices referencing it survive — the foreign key is ON DELETE SET NULL, so financial records outlive their source file.",
           expect: "200", check: "deleted: true", as: "alice" },
         { id: "D8", m: "GET", path: "/documents/{documentId}", name: "Return 404 after deletion",
-          expect: "404", check: "Document not found", as: "alice" }
+          expect: "404", check: "Document not found", as: "alice" },
+        { id: "D9", m: "POST", path: "/documents/{documentId}/retry", name: "Retry a failed document",
+          desc: "Re-enqueues extraction and clears the previous error, so a stale message never sits on a pending row.",
+          expect: "404", check: "404 here because D7 deleted the document; the happy path is covered by the unit suite", as: "alice" },
+        { id: "D10", m: "POST", path: "/storage/invoice-upload-url", name: "Get an upload URL scoped to the caller",
+          desc: "The object path is derived from the session, never the request body — that is what makes it trustworthy as the source of ownership when the webhook parses it.",
+          expect: "200", check: "objectPath starts with invoices/<your user id>/",
+          body: { filename: "invoice.pdf" }, as: "alice" }
       ]
     },
     {

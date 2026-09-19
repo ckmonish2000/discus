@@ -22,6 +22,8 @@ export default {
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
     LLM_MODEL: process.env.LLM_MODEL,
     OLLAMA_HOST: process.env.OLLAMA_HOST,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    GEMINI_MODEL: process.env.GEMINI_MODEL,
   },
   api: {
     NODE_ENV: process.env.NODE_ENV,

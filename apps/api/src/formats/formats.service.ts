@@ -1,7 +1,8 @@
-import { db } from "drizzle";
+import { db, type Executor } from "drizzle";
 import { AppError, type CreateFormatDto, type UpdateFormatDto } from "common";
 import { requireOwned } from "../shared/crud.helpers";
 import { formatsRepository } from "./formats.repository";
+export { resolveExtractionFormat } from "./resolve-format";
 import {
   DEFAULT_INVOICE_SCHEMA,
   DEFAULT_FIELD_MAPPING,
@@ -65,18 +66,21 @@ export const formatsService = {
    * Installs the EN 16931 template for a new account. Idempotent: returns the
    * existing default if one is already set.
    */
-  async seedDefault(userId: string) {
-    const existing = await formatsRepository.findDefault(userId);
+  async seedDefault(userId: string, ex: Executor = db) {
+    const existing = await formatsRepository.findDefault(userId, ex);
     if (existing) return { format: existing, created: false as const };
 
-    const format = await formatsRepository.create({
-      userId,
-      name: DEFAULT_FORMAT_NAME,
-      description: DEFAULT_FORMAT_DESCRIPTION,
-      schema: DEFAULT_INVOICE_SCHEMA as unknown as Record<string, unknown>,
-      fieldMapping: DEFAULT_FIELD_MAPPING,
-      isDefault: true,
-    });
+    const format = await formatsRepository.create(
+      {
+        userId,
+        name: DEFAULT_FORMAT_NAME,
+        description: DEFAULT_FORMAT_DESCRIPTION,
+        schema: DEFAULT_INVOICE_SCHEMA as unknown as Record<string, unknown>,
+        fieldMapping: DEFAULT_FIELD_MAPPING,
+        isDefault: true,
+      },
+      ex,
+    );
 
     if (!format) {
       throw new AppError("Failed to seed default format", 500, "seedDefault");

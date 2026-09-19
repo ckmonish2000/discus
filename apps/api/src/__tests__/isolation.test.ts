@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeAll, afterAll } from "bun:test";
 import { db, users } from "drizzle";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import app from "../index";
 
 /**
@@ -225,6 +225,77 @@ describe("regressions", () => {
       body: "{not valid json",
     });
     expect(res.status).toBe(400);
+  });
+
+  test("a new account is seeded with a default format", async () => {
+    // Extraction needs a schema. Seeding was previously manual and called by
+    // nothing, so an account that uploaded before visiting settings had no
+    // format at all.
+    const res = await asUser(alice, "/formats");
+    expect(res.status).toBe(200);
+
+    const body = await json(res);
+    const defaults = body.data.filter((f: any) => f.isDefault);
+    expect(defaults).toHaveLength(1);
+    expect(defaults[0].name).toContain("EN 16931");
+  });
+
+  test("a failed format seed rolls the whole signup back", async () => {
+    // Without a transaction, a seeding failure leaves a committed user row
+    // with no session — and existsByEmail then blocks re-registration
+    // forever, making the address permanently unusable.
+    const email = `rollback-${unique()}@example.com`;
+
+    await db.execute(
+      sql`ALTER TABLE invoice_formats ADD CONSTRAINT probe_block CHECK (false) NOT VALID`,
+    );
+
+    // The drop must run even if the request throws rather than returning a
+    // response. A leaked CHECK (false) on invoice_formats would fail every
+    // later test that seeds a format — and would persist in the database
+    // beyond this run, since nothing else drops it.
+    let res: Response;
+    try {
+      res = await request("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "a-sufficiently-long-password" }),
+      });
+    } finally {
+      await db.execute(
+        sql`ALTER TABLE invoice_formats DROP CONSTRAINT IF EXISTS probe_block`,
+      );
+    }
+
+    expect(res.status).toBeGreaterThanOrEqual(400);
+
+    // The account must not exist, so the person can simply try again.
+    const [orphan] = await db.select().from(users).where(eq(users.email, email));
+    expect(orphan).toBeUndefined();
+  });
+
+  test("a failed document can be retried, and another user's cannot", async () => {
+    const created = await asUser(alice, "/documents", {
+      method: "POST",
+      body: JSON.stringify({
+        bucketName: "invoices",
+        objectPath: `invoices/${alice.userId}/${unique()}.pdf`,
+        mimeType: "application/pdf",
+      }),
+    });
+    const docId = (await json(created)).data.id;
+
+    const retried = await asUser(alice, `/documents/${docId}/retry`, {
+      method: "POST",
+    });
+    expect(retried.status).toBe(200);
+    expect((await json(retried)).data.status).toBe("pending");
+
+    // Ownership is checked the same way as every other route: 404, not 403.
+    const asMallory = await asUser(mallory, `/documents/${docId}/retry`, {
+      method: "POST",
+    });
+    expect(asMallory.status).toBe(404);
   });
 });
 

@@ -1,6 +1,18 @@
-import { AppError, type CreateDocumentDto, type ListDocumentsDto } from "common";
+import {
+  AppError,
+  rewriteMinioUrl,
+  type CreateDocumentDto,
+  type ListDocumentsDto,
+} from "common";
+import { db, documents } from "drizzle";
+import { and, eq } from "drizzle-orm";
+import { documentQueue } from "../queues";
 import { requireOwned } from "../shared/crud.helpers";
 import { documentsRepository } from "./documents.repository";
+import { minioService } from "../storage/services/minio.service";
+
+/** Short-lived: a preview URL is for opening now, not for sharing. */
+const PREVIEW_URL_TTL_SECONDS = 300;
 
 export const documentsService = {
   list(userId: string, query: ListDocumentsDto) {
@@ -44,11 +56,61 @@ export const documentsService = {
     return { document: existing, created: false as const };
   },
 
+  /**
+   * A time-limited URL for viewing the original file.
+   *
+   * Goes through getById first, so a document belonging to another user 404s
+   * before any URL is minted. The generic /storage/object/download route
+   * takes a caller-supplied bucket and path and checks nothing, so it must
+   * not be what the dashboard uses to open an invoice.
+   */
+  async previewUrl(id: string, userId: string) {
+    const doc = await documentsService.getById(id, userId);
+
+    const url = await minioService.getPresignedUrl({
+      bucketName: doc.bucketName,
+      objectName: doc.objectPath,
+      isFetch: true,
+      expires: PREVIEW_URL_TTL_SECONDS,
+    });
+
+    return { url: rewriteMinioUrl(url), mimeType: doc.mimeType };
+  },
+
   async remove(id: string, userId: string) {
     requireOwned(
       await documentsRepository.remove(id, userId),
       "Document",
       "deleteDocument",
     );
+  },
+
+  /**
+   * Re-enqueues a document for extraction. Used after a failure, so it clears
+   * the previous error rather than leaving a stale message on a pending row.
+   */
+  async retry(id: string, userId: string) {
+    const doc = await documentsService.getById(id, userId);
+
+    const [updated] = await db
+      .update(documents)
+      .set({
+        status: "pending",
+        errorMessage: null,
+        processedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+      .returning();
+
+    await documentQueue.add("process_document", {
+      documentId: doc.id,
+      userId,
+      bucketName: doc.bucketName,
+      objectPath: doc.objectPath,
+      mimeType: doc.mimeType,
+    });
+
+    return updated!;
   },
 };

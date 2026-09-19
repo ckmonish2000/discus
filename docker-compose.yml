@@ -1,4 +1,5 @@
 services:
+
   api:
     build:
       context: .
@@ -11,6 +12,14 @@ services:
       - .env.local
     volumes:
       - .:/app
+      # node_modules stays the image's own. The bind mount above would
+      # otherwise overlay the host's macOS tree, where native packages like
+      # @firecrawl/anydoc resolved to darwin-arm64 binaries this container
+      # cannot load.
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
 
   worker:
     build:
@@ -20,6 +29,11 @@ services:
       - .env.local
     volumes:
       - .:/app
+      # node_modules stays the image's own. The bind mount above would
+      # otherwise overlay the host's macOS tree, where native packages like
+      # @firecrawl/anydoc resolved to darwin-arm64 binaries this container
+      # cannot load.
+      - /app/node_modules
     depends_on:
       redis:
         condition: service_healthy
@@ -30,10 +44,33 @@ services:
         limits:
           cpus: "4.0"
 
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.dockerfile
+    ports:
+      - 5173:5173
+    env_file:
+      - .env.local
+    environment:
+      # Resolved by the browser, not by this container, so it is the host's
+      # published API port rather than the compose service name.
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    depends_on:
+      - api
+
   minio:
     image: minio/minio
     env_file:
       - .env.local
+    ports:
+      # Direct host access for tests and native processes. Caddy already
+      # fronts 9000/9001, so this uses 9002 to avoid colliding with it.
+      - 9002:9000
     command: server /data --console-address ":9001"
     volumes:
       - storage_data:/data

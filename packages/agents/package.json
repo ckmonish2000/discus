@@ -10,8 +10,10 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "common": "workspace/*",
+    "@langchain/core": "^1.2.11",
+    "@langchain/google-genai": "^2.3.2",
     "@mistralai/mistralai": "^1.10.0",
+    "common": "workspace/*",
     "ollama": "^0.6.3"
   }
 }

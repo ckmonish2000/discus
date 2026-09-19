@@ -38,6 +38,21 @@ router.post("/", validate("json", createDocumentSchema), async (c) => {
   return c.json(ok(serializeDocument(document)), created ? 201 : 200);
 });
 
+/** POST /documents/:id/retry — re-run extraction after a failure. */
+router.post("/:id/retry", async (c) => {
+  const doc = await documentsService.retry(c.req.param("id"), getUserId(c));
+  return c.json(ok(serializeDocument(doc)));
+});
+
+/** GET /documents/:id/preview — short-lived URL for the original file. */
+router.get("/:id/preview", async (c) => {
+  const preview = await documentsService.previewUrl(
+    c.req.param("id"),
+    getUserId(c),
+  );
+  return c.json(ok(preview));
+});
+
 /** DELETE /documents/:id — invoices survive via ON DELETE SET NULL. */
 router.delete("/:id", async (c) => {
   await documentsService.remove(c.req.param("id"), getUserId(c));

@@ -9,13 +9,14 @@ import type { ErrorHandler } from "hono";
  * copy of hono, so the class identity here differs from the one apps/api
  * throws and `instanceof` silently never matches.
  */
-const isHttpException = (
-  err: unknown,
-): err is Error & { status: number } =>
-  err instanceof Error &&
-  typeof (err as { status?: unknown }).status === "number" &&
-  (err as { status: number }).status >= 400 &&
-  (err as { status: number }).status <= 599;
+const isHttpException = (err: unknown): err is Error & { status: number } => {
+  if (!(err instanceof Error)) return false;
+
+  // Read `status` through unknown: once the guard above narrows err to Error,
+  // casting straight to { status: number } is rejected as non-overlapping.
+  const status = (err as unknown as { status?: unknown }).status;
+  return typeof status === "number" && status >= 400 && status <= 599;
+};
 
 export const errorHandler: ErrorHandler = (err, c) => {
   if (isHttpException(err)) {
